@@ -3,7 +3,9 @@
 
 from __future__ import with_statement
 from __future__ import print_function
+from __future__ import absolute_import
 
+from builtins import str
 __license__ = 'GPL v3'
 
 # Standard Python modules.
@@ -289,12 +291,12 @@ class ManageKeysDialog(QDialog):
 
     def getwineprefix(self):
         if self.wineprefix is not None:
-            return unicode(self.wp_lineedit.text()).strip()
+            return str(self.wp_lineedit.text()).strip()
         return u""
 
     def populate_list(self):
         if type(self.plugin_keys) == dict:
-            for key in self.plugin_keys.keys():
+            for key in list(self.plugin_keys.keys()):
                 self.listy.addItem(QListWidgetItem(key))
         else:
             for key in self.plugin_keys:
@@ -309,8 +311,8 @@ class ManageKeysDialog(QDialog):
             return
         new_key_value = d.key_value
         if type(self.plugin_keys) == dict:
-            if new_key_value in self.plugin_keys.values():
-                old_key_name = [name for name, value in self.plugin_keys.iteritems() if value == new_key_value][0]
+            if new_key_value in list(self.plugin_keys.values()):
+                old_key_name = [name for name, value in self.plugin_keys.items() if value == new_key_value][0]
                 info_dialog(None, "{0} {1}: Duplicate {2}".format(PLUGIN_NAME, PLUGIN_VERSION,self.key_type_name),
                                     u"The new {1} is the same as the existing {1} named <strong>{0}</strong> and has not been added.".format(old_key_name,self.key_type_name), show=True)
                 return
@@ -338,7 +340,7 @@ class ManageKeysDialog(QDialog):
         if d.result() != d.Accepted:
             # rename cancelled or moot.
             return
-        keyname = unicode(self.listy.currentItem().text())
+        keyname = str(self.listy.currentItem().text())
         if not question_dialog(self, "{0} {1}: Confirm Rename".format(PLUGIN_NAME, PLUGIN_VERSION), u"Do you really want to rename the {2} named <strong>{0}</strong> to <strong>{1}</strong>?".format(keyname,d.key_name,self.key_type_name), show_copy_button=False, default_yes=False):
             return
         self.plugin_keys[d.key_name] = self.plugin_keys[keyname]
@@ -350,7 +352,7 @@ class ManageKeysDialog(QDialog):
     def delete_key(self):
         if not self.listy.currentItem():
             return
-        keyname = unicode(self.listy.currentItem().text())
+        keyname = str(self.listy.currentItem().text())
         if not question_dialog(self, "{0} {1}: Confirm Delete".format(PLUGIN_NAME, PLUGIN_VERSION), u"Do you really want to delete the {1} <strong>{0}</strong>?".format(keyname, self.key_type_name), show_copy_button=False, default_yes=False):
             return
         if type(self.plugin_keys) == dict:
@@ -395,7 +397,7 @@ class ManageKeysDialog(QDialog):
                     # convert to list of the keys in the string
                     new_key_value = new_key_value.splitlines()
                 match = False
-                for key in self.plugin_keys.keys():
+                for key in list(self.plugin_keys.keys()):
                     if uStrCmp(new_key_name, key, True):
                         skipped += 1
                         msg = u"A key with the name <strong>{0}</strong> already exists!\nSkipping key file  <strong>{1}</strong>.\nRename the existing key and import again".format(new_key_name,filename)
@@ -404,8 +406,8 @@ class ManageKeysDialog(QDialog):
                         match = True
                         break
                 if not match:
-                    if new_key_value in self.plugin_keys.values():
-                        old_key_name = [name for name, value in self.plugin_keys.iteritems() if value == new_key_value][0]
+                    if new_key_value in list(self.plugin_keys.values()):
+                        old_key_name = [name for name, value in self.plugin_keys.items() if value == new_key_value][0]
                         skipped += 1
                         info_dialog(None, "{0} {1}".format(PLUGIN_NAME, PLUGIN_VERSION),
                                             u"The key in file {0} is the same as the existing key <strong>{1}</strong> and has been skipped.".format(filename,old_key_name), show_copy_button=False, show=True)
@@ -434,7 +436,7 @@ class ManageKeysDialog(QDialog):
             r = error_dialog(None, "{0} {1}".format(PLUGIN_NAME, PLUGIN_VERSION),
                                     _(errmsg), show=True, show_copy_button=False)
             return
-        keyname = unicode(self.listy.currentItem().text())
+        keyname = str(self.listy.currentItem().text())
         unique_dlg_name = PLUGIN_NAME + u"export {0} keys".format(self.key_type_name).replace(' ', '_') #takes care of automatically remembering last directory
         caption = u"Save {0} File as...".format(self.key_type_name)
         filters = [(u"{0} Files".format(self.key_type_name), [u"{0}".format(self.keyfile_ext)])]
@@ -485,7 +487,7 @@ class RenameKeyDialog(QDialog):
         self.resize(self.sizeHint())
 
     def accept(self):
-        if not unicode(self.key_ledit.text()) or unicode(self.key_ledit.text()).isspace():
+        if not str(self.key_ledit.text()) or str(self.key_ledit.text()).isspace():
             errmsg = u"Key name field cannot be empty!"
             return error_dialog(None, "{0} {1}".format(PLUGIN_NAME, PLUGIN_VERSION),
                                     _(errmsg), show=True, show_copy_button=False)
@@ -496,7 +498,7 @@ class RenameKeyDialog(QDialog):
         if uStrCmp(self.key_ledit.text(), self.parent.listy.currentItem().text()):
                 # Same exact name ... do nothing.
                 return QDialog.reject(self)
-        for k in self.parent.plugin_keys.keys():
+        for k in list(self.parent.plugin_keys.keys()):
             if (uStrCmp(self.key_ledit.text(), k, True) and
                         not uStrCmp(k, self.parent.listy.currentItem().text(), True)):
                 errmsg = u"The key name <strong>{0}</strong> is already being used.".format(self.key_ledit.text())
@@ -506,7 +508,7 @@ class RenameKeyDialog(QDialog):
 
     @property
     def key_name(self):
-        return unicode(self.key_ledit.text()).strip()
+        return str(self.key_ledit.text()).strip()
 
 
 
@@ -589,19 +591,19 @@ class AddBandNKeyDialog(QDialog):
 
     @property
     def key_name(self):
-        return unicode(self.key_ledit.text()).strip()
+        return str(self.key_ledit.text()).strip()
 
     @property
     def key_value(self):
-        return unicode(self.key_display.text()).strip()
+        return str(self.key_display.text()).strip()
 
     @property
     def user_name(self):
-        return unicode(self.name_ledit.text()).strip().lower().replace(' ','')
+        return str(self.name_ledit.text()).strip().lower().replace(' ','')
 
     @property
     def cc_number(self):
-        return unicode(self.cc_ledit.text()).strip()
+        return str(self.cc_ledit.text()).strip()
 
     def retrieve_key(self):
         from calibre_plugins.dedrm.ignoblekeyfetch import fetch_key as fetch_bandn_key
@@ -675,7 +677,7 @@ class AddEReaderDialog(QDialog):
 
     @property
     def key_name(self):
-        return unicode(self.key_ledit.text()).strip()
+        return str(self.key_ledit.text()).strip()
 
     @property
     def key_value(self):
@@ -684,11 +686,11 @@ class AddEReaderDialog(QDialog):
 
     @property
     def user_name(self):
-        return unicode(self.name_ledit.text()).strip().lower().replace(' ','')
+        return str(self.name_ledit.text()).strip().lower().replace(' ','')
 
     @property
     def cc_number(self):
-        return unicode(self.cc_ledit.text()).strip().replace(' ', '').replace('-','')
+        return str(self.cc_ledit.text()).strip().replace(' ', '').replace('-','')
 
 
     def accept(self):
@@ -718,7 +720,7 @@ class AddAdeptDialog(QDialog):
 
                 defaultkeys = adeptkeys()
             else:  # linux
-                from wineutils import WineGetKeys
+                from .wineutils import WineGetKeys
 
                 scriptpath = os.path.join(parent.parent.alfdir,u"adobekey.py")
                 defaultkeys = WineGetKeys(scriptpath, u".der",parent.getwineprefix())
@@ -758,7 +760,7 @@ class AddAdeptDialog(QDialog):
 
     @property
     def key_name(self):
-        return unicode(self.key_ledit.text()).strip()
+        return str(self.key_ledit.text()).strip()
 
     @property
     def key_value(self):
@@ -789,7 +791,7 @@ class AddKindleDialog(QDialog):
 
                 defaultkeys = kindlekeys()
             else: # linux
-                from wineutils import WineGetKeys
+                from .wineutils import WineGetKeys
 
                 scriptpath = os.path.join(parent.parent.alfdir,u"kindlekey.py")
                 defaultkeys = WineGetKeys(scriptpath, u".k4i",parent.getwineprefix())
@@ -830,7 +832,7 @@ class AddKindleDialog(QDialog):
 
     @property
     def key_name(self):
-        return unicode(self.key_ledit.text()).strip()
+        return str(self.key_ledit.text()).strip()
 
     @property
     def key_value(self):
@@ -876,11 +878,11 @@ class AddSerialDialog(QDialog):
 
     @property
     def key_name(self):
-        return unicode(self.key_ledit.text()).strip()
+        return str(self.key_ledit.text()).strip()
 
     @property
     def key_value(self):
-        return unicode(self.key_ledit.text()).strip()
+        return str(self.key_ledit.text()).strip()
 
     def accept(self):
         if len(self.key_name) == 0 or self.key_name.isspace():
@@ -934,11 +936,11 @@ class AddAndroidDialog(QDialog):
 
     @property
     def key_name(self):
-        return unicode(self.key_ledit.text()).strip()
+        return str(self.key_ledit.text()).strip()
 
     @property
     def file_name(self):
-        return unicode(self.selected_file_name.text()).strip()
+        return str(self.selected_file_name.text()).strip()
 
     @property
     def key_value(self):
@@ -1004,11 +1006,11 @@ class AddPIDDialog(QDialog):
 
     @property
     def key_name(self):
-        return unicode(self.key_ledit.text()).strip()
+        return str(self.key_ledit.text()).strip()
 
     @property
     def key_value(self):
-        return unicode(self.key_ledit.text()).strip()
+        return str(self.key_ledit.text()).strip()
 
     def accept(self):
         if len(self.key_name) == 0 or self.key_name.isspace():

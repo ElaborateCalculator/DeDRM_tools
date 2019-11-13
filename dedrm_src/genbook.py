@@ -2,7 +2,13 @@
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
 from __future__ import print_function
-class Unbuffered:
+from __future__ import division
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
+class Unbuffered(object):
     def __init__(self, stream):
         self.stream = stream
     def write(self, data):
@@ -35,10 +41,10 @@ if inCalibre :
     from calibre_plugins.dedrm import flatxml2svg
     from calibre_plugins.dedrm import stylexml2css
 else :
-    import convert2xml
-    import flatxml2html
-    import flatxml2svg
-    import stylexml2css
+    from . import convert2xml
+    from . import flatxml2html
+    from . import flatxml2svg
+    from . import stylexml2css
 
 # global switch
 buildXML = False
@@ -87,7 +93,7 @@ def getMetaArray(metaFile):
     result = {}
     fo = file(metaFile,'rb')
     size = readEncodedNumber(fo)
-    for i in xrange(size):
+    for i in range(size):
         tag = readString(fo)
         value = readString(fo)
         result[tag] = value
@@ -104,7 +110,7 @@ class Dictionary(object):
         self.fo = file(dictFile,'rb')
         self.stable = []
         self.size = readEncodedNumber(self.fo)
-        for i in xrange(self.size):
+        for i in range(self.size):
             self.stable.append(self.escapestr(readString(self.fo)))
         self.pos = 0
     def escapestr(self, str):
@@ -140,7 +146,7 @@ class PageDimParser(object):
         else:
             end = min(cnt,end)
         foundat = -1
-        for j in xrange(pos, end):
+        for j in range(pos, end):
             item = docList[j]
             if item.find('=') >= 0:
                 (name, argres) = item.split('=')
@@ -193,7 +199,7 @@ class GParser(object):
     def getData(self, path):
         result = None
         cnt = len(self.flatdoc)
-        for j in xrange(cnt):
+        for j in range(cnt):
             item = self.flatdoc[j]
             if item.find('=') >= 0:
                 (name, argt) = item.split('=')
@@ -205,14 +211,14 @@ class GParser(object):
                 result = argres
                 break
         if (len(argres) > 0) :
-            for j in xrange(0,len(argres)):
+            for j in range(0,len(argres)):
                 argres[j] = int(argres[j])
         return result
     def getGlyphDim(self, gly):
         if self.gdpi[gly] == 0:
             return 0, 0
-        maxh = (self.gh[gly] * self.dpi) / self.gdpi[gly]
-        maxw = (self.gw[gly] * self.dpi) / self.gdpi[gly]
+        maxh = old_div((self.gh[gly] * self.dpi), self.gdpi[gly])
+        maxw = old_div((self.gw[gly] * self.dpi), self.gdpi[gly])
         return maxh, maxw
     def getPath(self, gly):
         path = ''
@@ -221,7 +227,7 @@ class GParser(object):
         tx = self.vx[self.gvtx[gly]:self.gvtx[gly+1]]
         ty = self.vy[self.gvtx[gly]:self.gvtx[gly+1]]
         p = 0
-        for k in xrange(self.glen[gly], self.glen[gly+1]):
+        for k in range(self.glen[gly], self.glen[gly+1]):
             if (p == 0):
                 zx = tx[0:self.vlen[k]+1]
                 zy = ty[0:self.vlen[k]+1]
@@ -233,18 +239,18 @@ class GParser(object):
             while ( j  < len(zx) ):
                 if (j == 0):
                     # Start Position.
-                    path += 'M %d %d ' % (zx[j] * self.dpi / self.gdpi[gly], zy[j] * self.dpi / self.gdpi[gly])
+                    path += 'M %d %d ' % (old_div(zx[j] * self.dpi, self.gdpi[gly]), old_div(zy[j] * self.dpi, self.gdpi[gly]))
                 elif (j <= len(zx)-3):
                     # Cubic Bezier Curve
-                    path += 'C %d %d %d %d %d %d ' % (zx[j] * self.dpi / self.gdpi[gly], zy[j] * self.dpi / self.gdpi[gly], zx[j+1] * self.dpi / self.gdpi[gly], zy[j+1] * self.dpi / self.gdpi[gly], zx[j+2] * self.dpi / self.gdpi[gly], zy[j+2] * self.dpi / self.gdpi[gly])
+                    path += 'C %d %d %d %d %d %d ' % (old_div(zx[j] * self.dpi, self.gdpi[gly]), old_div(zy[j] * self.dpi, self.gdpi[gly]), old_div(zx[j+1] * self.dpi, self.gdpi[gly]), old_div(zy[j+1] * self.dpi, self.gdpi[gly]), old_div(zx[j+2] * self.dpi, self.gdpi[gly]), old_div(zy[j+2] * self.dpi, self.gdpi[gly]))
                     j += 2
                 elif (j == len(zx)-2):
                     # Cubic Bezier Curve to Start Position
-                    path += 'C %d %d %d %d %d %d ' % (zx[j] * self.dpi / self.gdpi[gly], zy[j] * self.dpi / self.gdpi[gly], zx[j+1] * self.dpi / self.gdpi[gly], zy[j+1] * self.dpi / self.gdpi[gly], zx[0] * self.dpi / self.gdpi[gly], zy[0] * self.dpi / self.gdpi[gly])
+                    path += 'C %d %d %d %d %d %d ' % (old_div(zx[j] * self.dpi, self.gdpi[gly]), old_div(zy[j] * self.dpi, self.gdpi[gly]), old_div(zx[j+1] * self.dpi, self.gdpi[gly]), old_div(zy[j+1] * self.dpi, self.gdpi[gly]), old_div(zx[0] * self.dpi, self.gdpi[gly]), old_div(zy[0] * self.dpi, self.gdpi[gly]))
                     j += 1
                 elif (j == len(zx)-1):
                     # Quadratic Bezier Curve to Start Position
-                    path += 'Q %d %d %d %d ' % (zx[j] * self.dpi / self.gdpi[gly], zy[j] * self.dpi / self.gdpi[gly], zx[0] * self.dpi / self.gdpi[gly], zy[0] * self.dpi / self.gdpi[gly])
+                    path += 'Q %d %d %d %d ' % (old_div(zx[j] * self.dpi, self.gdpi[gly]), old_div(zy[j] * self.dpi, self.gdpi[gly]), old_div(zx[0] * self.dpi, self.gdpi[gly]), old_div(zy[0] * self.dpi, self.gdpi[gly]))
 
                 j += 1
         path += 'z'
@@ -395,7 +401,7 @@ def generateBook(bookDir, raw, fixedimage):
     if (pw == '-1') or (pw == '0') : pw = '8500'
     meta_array['pageHeight'] = ph
     meta_array['pageWidth'] = pw
-    if 'fontSize' not in meta_array.keys():
+    if 'fontSize' not in list(meta_array.keys()):
         meta_array['fontSize'] = fontsize
 
     # process other.dat for css info and for map of page files to svg images
@@ -415,7 +421,7 @@ def generateBook(bookDir, raw, fixedimage):
     # create a map from page ids to list of page file nums to process for that page
     for i in range(len(pageidnums)):
         id = pageidnums[i]
-        if id in pageIDMap.keys():
+        if id in list(pageIDMap.keys()):
             pageIDMap[id].append(i)
         else:
             pageIDMap[id] = [i]
@@ -450,7 +456,7 @@ def generateBook(bookDir, raw, fixedimage):
             file(xname, 'wb').write(convert2xml.getXML(dict, fname))
 
         gp = GParser(flat_xml)
-        for i in xrange(0, gp.count):
+        for i in range(0, gp.count):
             path = gp.getPath(i)
             maxh, maxw = gp.getGlyphDim(i)
             fullpath = '<path id="gl%d" d="%s" fill="black" /><!-- width=%d height=%d -->\n' % (counter * 256 + i, path, maxw, maxh)

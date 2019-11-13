@@ -3,10 +3,13 @@
 
 from __future__ import with_statement
 from __future__ import print_function
+from __future__ import absolute_import
 
 # __init__.py for DeDRM_plugin
 # Copyright © 2008-2019 Apprentice Harper et al.
 
+from builtins import str
+from builtins import object
 __license__   = 'GPL v3'
 __version__ = '6.6.3'
 __docformat__ = 'restructuredtext en'
@@ -100,7 +103,7 @@ from calibre.utils.config import config_dir
 # Wrap a stream so that output gets flushed immediately
 # and also make sure that any unicode strings get safely
 # encoded using "replace" before writing them.
-class SafeUnbuffered:
+class SafeUnbuffered(object):
     def __init__(self, stream):
         self.stream = stream
         self.encoding = stream.encoding
@@ -167,7 +170,7 @@ class DeDRM(FileTypePlugin):
                 lib_dict = self.load_resources(names)
                 print(u"{0} v{1}: Copying needed library files from plugin's zip".format(PLUGIN_NAME, PLUGIN_VERSION))
 
-                for entry, data in lib_dict.items():
+                for entry, data in list(lib_dict.items()):
                     file_path = os.path.join(self.alfdir, entry)
                     try:
                         os.remove(file_path)
@@ -218,7 +221,7 @@ class DeDRM(FileTypePlugin):
             print(u"{0} v{1}: “{2}” is a secure Barnes & Noble ePub".format(PLUGIN_NAME, PLUGIN_VERSION, os.path.basename(path_to_ebook)))
 
             # Attempt to decrypt epub with each encryption key (generated or provided).
-            for keyname, userkey in dedrmprefs['bandnkeys'].items():
+            for keyname, userkey in list(dedrmprefs['bandnkeys'].items()):
                 keyname_masked = u"".join((u'X' if (x.isdigit()) else x) for x in keyname)
                 print(u"{0} v{1}: Trying Encryption key {2:s}".format(PLUGIN_NAME, PLUGIN_VERSION, keyname_masked))
                 of = self.temporary_file(u".epub")
@@ -252,7 +255,7 @@ class DeDRM(FileTypePlugin):
 
                     defaultkeys = nookkeys()
                 else: # linux
-                    from wineutils import WineGetKeys
+                    from .wineutils import WineGetKeys
 
                     scriptpath = os.path.join(self.alfdir,u"ignoblekey.py")
                     defaultkeys = WineGetKeys(scriptpath, u".b64",dedrmprefs['adobewineprefix'])
@@ -263,7 +266,7 @@ class DeDRM(FileTypePlugin):
 
             newkeys = []
             for keyvalue in defaultkeys:
-                if keyvalue not in dedrmprefs['bandnkeys'].values():
+                if keyvalue not in list(dedrmprefs['bandnkeys'].values()):
                     newkeys.append(keyvalue)
 
             if len(newkeys) > 0:
@@ -311,7 +314,7 @@ class DeDRM(FileTypePlugin):
             print(u"{0} v{1}: {2} is a secure Adobe Adept ePub".format(PLUGIN_NAME, PLUGIN_VERSION, os.path.basename(path_to_ebook)))
 
             # Attempt to decrypt epub with each encryption key (generated or provided).
-            for keyname, userkeyhex in dedrmprefs['adeptkeys'].items():
+            for keyname, userkeyhex in list(dedrmprefs['adeptkeys'].items()):
                 userkey = userkeyhex.decode('hex')
                 print(u"{0} v{1}: Trying Encryption key {2:s}".format(PLUGIN_NAME, PLUGIN_VERSION, keyname))
                 of = self.temporary_file(u".epub")
@@ -349,7 +352,7 @@ class DeDRM(FileTypePlugin):
 
                     defaultkeys = adeptkeys()
                 else: # linux
-                    from wineutils import WineGetKeys
+                    from .wineutils import WineGetKeys
 
                     scriptpath = os.path.join(self.alfdir,u"adobekey.py")
                     defaultkeys = WineGetKeys(scriptpath, u".der",dedrmprefs['adobewineprefix'])
@@ -362,7 +365,7 @@ class DeDRM(FileTypePlugin):
 
             newkeys = []
             for keyvalue in defaultkeys:
-                if keyvalue.encode('hex') not in dedrmprefs['adeptkeys'].values():
+                if keyvalue.encode('hex') not in list(dedrmprefs['adeptkeys'].values()):
                     newkeys.append(keyvalue)
 
             if len(newkeys) > 0:
@@ -418,7 +421,7 @@ class DeDRM(FileTypePlugin):
         dedrmprefs = prefs.DeDRM_Prefs()
         # Attempt to decrypt epub with each encryption key (generated or provided).
         print(u"{0} v{1}: {2} is a PDF ebook".format(PLUGIN_NAME, PLUGIN_VERSION, os.path.basename(path_to_ebook)))
-        for keyname, userkeyhex in dedrmprefs['adeptkeys'].items():
+        for keyname, userkeyhex in list(dedrmprefs['adeptkeys'].items()):
             userkey = userkeyhex.decode('hex')
             print(u"{0} v{1}: Trying Encryption key {2:s}".format(PLUGIN_NAME, PLUGIN_VERSION, keyname))
             of = self.temporary_file(u".pdf")
@@ -452,7 +455,7 @@ class DeDRM(FileTypePlugin):
 
                 defaultkeys = adeptkeys()
             else: # linux
-                from wineutils import WineGetKeys
+                from .wineutils import WineGetKeys
 
                 scriptpath = os.path.join(self.alfdir,u"adobekey.py")
                 defaultkeys = WineGetKeys(scriptpath, u".der",dedrmprefs['adobewineprefix'])
@@ -465,7 +468,7 @@ class DeDRM(FileTypePlugin):
 
         newkeys = []
         for keyvalue in defaultkeys:
-            if keyvalue.encode('hex') not in dedrmprefs['adeptkeys'].values():
+            if keyvalue.encode('hex') not in list(dedrmprefs['adeptkeys'].values()):
                 newkeys.append(keyvalue)
 
         if len(newkeys) > 0:
@@ -521,12 +524,12 @@ class DeDRM(FileTypePlugin):
         dedrmprefs = prefs.DeDRM_Prefs()
         pids = dedrmprefs['pids']
         serials = dedrmprefs['serials']
-        for android_serials_list in dedrmprefs['androidkeys'].values():
+        for android_serials_list in list(dedrmprefs['androidkeys'].values()):
             #print android_serials_list
             serials.extend(android_serials_list)
         #print serials
         androidFiles = []
-        kindleDatabases = dedrmprefs['kindlekeys'].items()
+        kindleDatabases = list(dedrmprefs['kindlekeys'].items())
 
         try:
             book = k4mobidedrm.GetDecryptedBook(path_to_ebook,kindleDatabases,androidFiles,serials,pids,self.starttime)
@@ -543,7 +546,7 @@ class DeDRM(FileTypePlugin):
 
                     defaultkeys = kindlekeys()
                 else: # linux
-                    from wineutils import WineGetKeys
+                    from .wineutils import WineGetKeys
 
                     scriptpath = os.path.join(self.alfdir,u"kindlekey.py")
                     defaultkeys = WineGetKeys(scriptpath, u".k4i",dedrmprefs['kindlewineprefix'])
@@ -555,16 +558,16 @@ class DeDRM(FileTypePlugin):
             newkeys = {}
             for i,keyvalue in enumerate(defaultkeys):
                 keyname = u"default_key_{0:d}".format(i+1)
-                if keyvalue not in dedrmprefs['kindlekeys'].values():
+                if keyvalue not in list(dedrmprefs['kindlekeys'].values()):
                     newkeys[keyname] = keyvalue
             if len(newkeys) > 0:
                 print(u"{0} v{1}: Found {2} new {3}".format(PLUGIN_NAME, PLUGIN_VERSION, len(newkeys), u"key" if len(newkeys)==1 else u"keys"))
                 try:
-                    book = k4mobidedrm.GetDecryptedBook(path_to_ebook,newkeys.items(),[],[],[],self.starttime)
+                    book = k4mobidedrm.GetDecryptedBook(path_to_ebook,list(newkeys.items()),[],[],[],self.starttime)
                     decoded = True
                     # store the new successful keys in the defaults
                     print(u"{0} v{1}: Saving {2} new {3}".format(PLUGIN_NAME, PLUGIN_VERSION, len(newkeys), u"key" if len(newkeys)==1 else u"keys"))
-                    for keyvalue in newkeys.values():
+                    for keyvalue in list(newkeys.values()):
                         dedrmprefs.addnamedvaluetoprefs('kindlekeys','default_key',keyvalue)
                     dedrmprefs.writeprefs()
                 except Exception as e:
@@ -588,7 +591,7 @@ class DeDRM(FileTypePlugin):
 
         dedrmprefs = prefs.DeDRM_Prefs()
         # Attempt to decrypt epub with each encryption key (generated or provided).
-        for keyname, userkey in dedrmprefs['ereaderkeys'].items():
+        for keyname, userkey in list(dedrmprefs['ereaderkeys'].items()):
             keyname_masked = u"".join((u'X' if (x.isdigit()) else x) for x in keyname)
             print(u"{0} v{1}: Trying Encryption key {2:s}".format(PLUGIN_NAME, PLUGIN_VERSION, keyname_masked))
             of = self.temporary_file(u".pmlz")

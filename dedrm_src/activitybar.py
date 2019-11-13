@@ -1,18 +1,22 @@
+from __future__ import division
+from future import standard_library
+standard_library.install_aliases()
+from past.utils import old_div
 import sys
-import Tkinter
-import Tkconstants
+import tkinter
+import tkinter.constants
 
-class ActivityBar(Tkinter.Frame):
+class ActivityBar(tkinter.Frame):
 
     def __init__(self, master, length=300, height=20, barwidth=15, interval=50, bg='white', fillcolor='orchid1',\
-                 bd=2, relief=Tkconstants.GROOVE, *args, **kw):
-        Tkinter.Frame.__init__(self, master, bg=bg, width=length, height=height, *args, **kw)
+                 bd=2, relief=tkinter.constants.GROOVE, *args, **kw):
+        tkinter.Frame.__init__(self, master, bg=bg, width=length, height=height, *args, **kw)
         self._master = master
         self._interval = interval
         self._maximum = length
         self._startx = 0
         self._barwidth = barwidth
-        self._bardiv = length / barwidth
+        self._bardiv = old_div(length, barwidth)
         if self._bardiv < 10:
             self._bardiv = 10
         stopx = self._startx + self._barwidth
@@ -20,7 +24,7 @@ class ActivityBar(Tkinter.Frame):
             stopx = self._maximum
         # self._canv = Tkinter.Canvas(self, bg=self['bg'], width=self['width'], height=self['height'],\
         #                             highlightthickness=0, relief='flat', bd=0)
-        self._canv = Tkinter.Canvas(self, bg=self['bg'], width=self['width'], height=self['height'],\
+        self._canv = tkinter.Canvas(self, bg=self['bg'], width=self['width'], height=self['height'],\
                                     highlightthickness=0, relief=relief, bd=bd)
         self._canv.pack(fill='both', expand=1)
         self._rect = self._canv.create_rectangle(0, 0, self._canv.winfo_reqwidth(), self._canv.winfo_reqheight(), fill=fillcolor, width=0)
@@ -37,7 +41,7 @@ class ActivityBar(Tkinter.Frame):
         self._canv.update_idletasks()
         self._maximum = self._canv.winfo_width()
         self._startx = 0
-        self._barwidth = self._maximum / self._bardiv
+        self._barwidth = old_div(self._maximum, self._bardiv)
         if self._barwidth < 2:
             self._barwidth = 2
         stopx = self._startx + self._barwidth
@@ -67,7 +71,7 @@ class ActivityBar(Tkinter.Frame):
 
     def _step(self):
         if self._running:
-            stepsize = self._barwidth / 4
+            stepsize = old_div(self._barwidth, 4)
             if stepsize < 2:
                 stepsize = 2
             self._startx += stepsize

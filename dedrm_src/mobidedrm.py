@@ -6,6 +6,12 @@
 # Portions © 2008–2017 Apprentice Harper et al.
 
 from __future__ import print_function
+from __future__ import absolute_import
+from builtins import chr
+from builtins import str
+from builtins import map
+from builtins import range
+from builtins import object
 __license__ = 'GPL v3'
 __version__ = u"0.42"
 
@@ -79,21 +85,21 @@ import os
 import struct
 import binascii
 try:
-    from alfcrypto import Pukall_Cipher
+    from .alfcrypto import Pukall_Cipher
 except:
     print(u"AlfCrypto not found. Using python PC1 implementation.")
 
 # Wrap a stream so that output gets flushed immediately
 # and also make sure that any unicode strings get
 # encoded using "replace" before writing them.
-class SafeUnbuffered:
+class SafeUnbuffered(object):
     def __init__(self, stream):
         self.stream = stream
         self.encoding = stream.encoding
         if self.encoding == None:
             self.encoding = "utf-8"
     def write(self, data):
-        if isinstance(data,unicode):
+        if isinstance(data,str):
             data = data.encode(self.encoding,"replace")
         self.stream.write(data)
         self.stream.flush()
@@ -131,7 +137,7 @@ def unicode_argv():
             # Remove Python executable and commands if present
             start = argc.value - len(sys.argv)
             return [argv[i] for i in
-                    xrange(start, argc.value)]
+                    range(start, argc.value)]
         # if we don't have any arguments at all, just pass back script name
         # this should never happen
         return [u"mobidedrm.py"]
@@ -139,7 +145,7 @@ def unicode_argv():
         argvencoding = sys.stdin.encoding
         if argvencoding == None:
             argvencoding = 'utf-8'
-        return [arg if (type(arg) == unicode) else unicode(arg,argvencoding) for arg in sys.argv]
+        return [arg if (type(arg) == str) else str(arg,argvencoding) for arg in sys.argv]
 
 
 class DrmException(Exception):
@@ -167,13 +173,13 @@ def PC1(key, src, decryption=True):
     if len(key)!=16:
          DrmException (u"PC1: Bad key length")
     wkey = []
-    for i in xrange(8):
+    for i in range(8):
         wkey.append(ord(key[i*2])<<8 | ord(key[i*2+1]))
     dst = ""
-    for i in xrange(len(src)):
+    for i in range(len(src)):
         temp1 = 0;
         byteXorVal = 0;
-        for j in xrange(8):
+        for j in range(8):
             temp1 ^= wkey[j]
             sum2  = (sum2+j)*20021 + sum1
             sum1  = (temp1*346)&0xFFFF
@@ -186,7 +192,7 @@ def PC1(key, src, decryption=True):
         curByte = ((curByte ^ (byteXorVal >> 8)) ^ byteXorVal) & 0xFF
         if decryption:
             keyXorVal = curByte * 257;
-        for j in xrange(8):
+        for j in range(8):
             wkey[j] ^= keyXorVal;
         dst+=chr(curByte)
     return dst
@@ -231,7 +237,7 @@ def getSizeOfTrailingDataEntries(ptr, size, flags):
 
 
 
-class MobiBook:
+class MobiBook(object):
     def loadSection(self, section):
         if (section + 1 == self.num_sections):
             endoff = len(self.data_file)
@@ -248,7 +254,7 @@ class MobiBook:
         print(u"MobiDeDrm v{0:s}.\nCopyright © 2008-2017 The Dark Reverser, Apprentice Harper et al.".format(__version__))
 
         try:
-            from alfcrypto import Pukall_Cipher
+            from .alfcrypto import Pukall_Cipher
         except:
             print(u"AlfCrypto not found. Using python PC1 implementation.")
 
@@ -264,7 +270,7 @@ class MobiBook:
         # build up section offset and flag info
         self.num_sections, = struct.unpack('>H', self.header[76:78])
         self.sections = []
-        for i in xrange(self.num_sections):
+        for i in range(self.num_sections):
             offset, a1,a2,a3,a4 = struct.unpack('>LBBBB', self.data_file[78+i*8:78+i*8+8])
             flags, val = a1, a2<<16|a3<<8|a4
             self.sections.append( (offset, flags, val) )
@@ -307,7 +313,7 @@ class MobiBook:
             if (len(exth) >= 12) and (exth[:4] == 'EXTH'):
                 nitems, = struct.unpack('>I', exth[8:12])
                 pos = 12
-                for i in xrange(nitems):
+                for i in range(nitems):
                     type, size = struct.unpack('>II', exth[pos: pos + 8])
                     content = exth[pos + 8: pos + size]
                     self.meta_array[type] = content
@@ -337,12 +343,12 @@ class MobiBook:
                 toff, tlen = struct.unpack('>II', self.sect[0x54:0x5c])
                 tend = toff + tlen
                 title = self.sect[toff:tend]
-            if self.mobi_codepage in codec_map.keys():
+            if self.mobi_codepage in list(codec_map.keys()):
                 codec = codec_map[self.mobi_codepage]
         if title == '':
             title = self.header[:32]
             title = title.split('\0')[0]
-        return unicode(title, codec)
+        return str(title, codec)
 
     def getPIDMetaInfo(self):
         rec209 = ''
@@ -353,7 +359,7 @@ class MobiBook:
             # The 209 data comes in five byte groups. Interpret the last four bytes
             # of each group as a big endian unsigned integer to get a key value
             # if that key exists in the meta_array, append its contents to the token
-            for i in xrange(0,len(data),5):
+            for i in range(0,len(data),5):
                 val,  = struct.unpack('>I',data[i+1:i+5])
                 sval = self.meta_array.get(val,'')
                 token += sval
@@ -379,7 +385,7 @@ class MobiBook:
             temp_key = PC1(keyvec1, bigpid, False)
             temp_key_sum = sum(map(ord,temp_key)) & 0xff
             found_key = None
-            for i in xrange(count):
+            for i in range(count):
                 verification, size, type, cksum, cookie = struct.unpack('>LLLBxxx32s', data[i*0x30:i*0x30+0x30])
                 if cksum == temp_key_sum:
                     cookie = PC1(temp_key, cookie)
@@ -394,7 +400,7 @@ class MobiBook:
             pid = '00000000'
             temp_key = keyvec1
             temp_key_sum = sum(map(ord,temp_key)) & 0xff
-            for i in xrange(count):
+            for i in range(count):
                 verification, size, type, cksum, cookie = struct.unpack('>LLLBxxx32s', data[i*0x30:i*0x30+0x30])
                 if cksum == temp_key_sum:
                     cookie = PC1(temp_key, cookie)
@@ -487,7 +493,7 @@ class MobiBook:
         print(u"Decrypting. Please wait . . .", end=' ')
         mobidataList = []
         mobidataList.append(self.data_file[:self.sections[1][0]])
-        for i in xrange(1, self.records+1):
+        for i in range(1, self.records+1):
             data = self.loadSection(i)
             extra_size = getSizeOfTrailingDataEntries(data, len(data), self.extra_data_flags)
             if i%100 == 0:

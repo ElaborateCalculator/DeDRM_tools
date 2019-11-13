@@ -3,6 +3,7 @@
 
 from __future__ import with_statement
 from __future__ import print_function
+from __future__ import absolute_import
 
 __license__ = 'GPL v3'
 
@@ -14,8 +15,8 @@ def WineGetKeys(scriptpath, extension, wineprefix=""):
     import subprocess
     from subprocess import Popen, PIPE, STDOUT
 
-    import subasyncio
-    from subasyncio import Process
+    from . import subasyncio
+    from .subasyncio import Process
 
     if extension == u".k4i":
         import json

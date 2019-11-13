@@ -3,29 +3,33 @@
 
 from __future__ import with_statement
 from __future__ import print_function
+from __future__ import absolute_import
 
 # Engine to remove drm from Kindle KFX ebooks
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import object
 import os
 import shutil
 import zipfile
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import StringIO
 
 try:
     from calibre_plugins.dedrm import ion
 except ImportError:
-    import ion
+    from . import ion
 
 
 __license__ = 'GPL v3'
 __version__ = '1.0'
 
 
-class KFXZipBook:
+class KFXZipBook(object):
     def __init__(self, infile):
         self.infile = infile
         self.voucher = None

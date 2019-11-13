@@ -33,6 +33,7 @@
 AskFolder(...) -- Ask the user to select a folder Windows specific
 """
 
+from builtins import str
 import os
 
 import ctypes
@@ -164,15 +165,15 @@ def AskFolder(
     def BrowseCallback(hwnd, uMsg, lParam, lpData):
         if uMsg == BFFM_INITIALIZED:
             if actionButtonLabel:
-                label = unicode(actionButtonLabel, errors='replace')
+                label = str(actionButtonLabel, errors='replace')
                 user32.SendMessageW(hwnd, BFFM_SETOKTEXT, 0, label)
             if cancelButtonLabel:
-                label = unicode(cancelButtonLabel, errors='replace')
+                label = str(cancelButtonLabel, errors='replace')
                 cancelButton = user32.GetDlgItem(hwnd, IDCANCEL)
                 if cancelButton:
                     user32.SetWindowTextW(cancelButton, label)
             if windowTitle:
-                title = unicode(windowTitle, erros='replace')
+                title = str(windowTitle, erros='replace')
                 user32.SetWindowTextW(hwnd, title)
             if defaultLocation:
                 user32.SendMessageW(hwnd, BFFM_SETSELECTIONW, 1, defaultLocation.replace('/', '\\'))

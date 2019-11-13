@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from __future__ import with_statement
 
 # ineptepub.pyw, version 6.6
@@ -63,14 +71,14 @@ import xml.etree.ElementTree as etree
 # Wrap a stream so that output gets flushed immediately
 # and also make sure that any unicode strings get
 # encoded using "replace" before writing them.
-class SafeUnbuffered:
+class SafeUnbuffered(object):
     def __init__(self, stream):
         self.stream = stream
         self.encoding = stream.encoding
         if self.encoding == None:
             self.encoding = "utf-8"
     def write(self, data):
-        if isinstance(data,unicode):
+        if isinstance(data,str):
             data = data.encode(self.encoding,"replace")
         self.stream.write(data)
         self.stream.flush()
@@ -111,13 +119,13 @@ def unicode_argv():
             # Remove Python executable and commands if present
             start = argc.value - len(sys.argv)
             return [argv[i] for i in
-                    xrange(start, argc.value)]
+                    range(start, argc.value)]
         return [u"ineptepub.py"]
     else:
         argvencoding = sys.stdin.encoding
         if argvencoding == None:
             argvencoding = "utf-8"
-        return [arg if (type(arg) == unicode) else unicode(arg,argvencoding) for arg in sys.argv]
+        return [arg if (type(arg) == str) else str(arg,argvencoding) for arg in sys.argv]
 
 
 class ADEPTError(Exception):
@@ -256,7 +264,7 @@ def _load_crypto_pycrypto():
                 lengthList = self.get(lengthLength)
                 if lengthList % length != 0:
                     raise ASN1Error("Error decoding ASN.1")
-                lengthList = int(lengthList/length)
+                lengthList = int(old_div(lengthList,length))
                 l = [0] * lengthList
                 for x in range(lengthList):
                     l[x] = self.get(length)
@@ -315,12 +323,12 @@ def _load_crypto_pycrypto():
     class RSA(object):
         def __init__(self, der):
             key = ASN1Parser([ord(x) for x in der])
-            key = [key.getChild(x).value for x in xrange(1, 4)]
+            key = [key.getChild(x).value for x in range(1, 4)]
             key = [self.bytesToNumber(v) for v in key]
             self._rsa = _RSA.construct(key)
 
         def bytesToNumber(self, bytes):
-            total = 0L
+            total = 0
             for byte in bytes:
                 total = (total << 8) + byte
             return total
@@ -483,79 +491,79 @@ def cli_main():
 
 def gui_main():
     try:
-        import Tkinter
-        import Tkconstants
-        import tkFileDialog
-        import tkMessageBox
+        import tkinter
+        import tkinter.constants
+        import tkinter.filedialog
+        import tkinter.messagebox
         import traceback
     except:
         return cli_main()
 
-    class DecryptionDialog(Tkinter.Frame):
+    class DecryptionDialog(tkinter.Frame):
         def __init__(self, root):
-            Tkinter.Frame.__init__(self, root, border=5)
-            self.status = Tkinter.Label(self, text=u"Select files for decryption")
-            self.status.pack(fill=Tkconstants.X, expand=1)
-            body = Tkinter.Frame(self)
-            body.pack(fill=Tkconstants.X, expand=1)
-            sticky = Tkconstants.E + Tkconstants.W
+            tkinter.Frame.__init__(self, root, border=5)
+            self.status = tkinter.Label(self, text=u"Select files for decryption")
+            self.status.pack(fill=tkinter.constants.X, expand=1)
+            body = tkinter.Frame(self)
+            body.pack(fill=tkinter.constants.X, expand=1)
+            sticky = tkinter.constants.E + tkinter.constants.W
             body.grid_columnconfigure(1, weight=2)
-            Tkinter.Label(body, text=u"Key file").grid(row=0)
-            self.keypath = Tkinter.Entry(body, width=30)
+            tkinter.Label(body, text=u"Key file").grid(row=0)
+            self.keypath = tkinter.Entry(body, width=30)
             self.keypath.grid(row=0, column=1, sticky=sticky)
             if os.path.exists(u"adeptkey.der"):
                 self.keypath.insert(0, u"adeptkey.der")
-            button = Tkinter.Button(body, text=u"...", command=self.get_keypath)
+            button = tkinter.Button(body, text=u"...", command=self.get_keypath)
             button.grid(row=0, column=2)
-            Tkinter.Label(body, text=u"Input file").grid(row=1)
-            self.inpath = Tkinter.Entry(body, width=30)
+            tkinter.Label(body, text=u"Input file").grid(row=1)
+            self.inpath = tkinter.Entry(body, width=30)
             self.inpath.grid(row=1, column=1, sticky=sticky)
-            button = Tkinter.Button(body, text=u"...", command=self.get_inpath)
+            button = tkinter.Button(body, text=u"...", command=self.get_inpath)
             button.grid(row=1, column=2)
-            Tkinter.Label(body, text=u"Output file").grid(row=2)
-            self.outpath = Tkinter.Entry(body, width=30)
+            tkinter.Label(body, text=u"Output file").grid(row=2)
+            self.outpath = tkinter.Entry(body, width=30)
             self.outpath.grid(row=2, column=1, sticky=sticky)
-            button = Tkinter.Button(body, text=u"...", command=self.get_outpath)
+            button = tkinter.Button(body, text=u"...", command=self.get_outpath)
             button.grid(row=2, column=2)
-            buttons = Tkinter.Frame(self)
+            buttons = tkinter.Frame(self)
             buttons.pack()
-            botton = Tkinter.Button(
+            botton = tkinter.Button(
                 buttons, text=u"Decrypt", width=10, command=self.decrypt)
-            botton.pack(side=Tkconstants.LEFT)
-            Tkinter.Frame(buttons, width=10).pack(side=Tkconstants.LEFT)
-            button = Tkinter.Button(
+            botton.pack(side=tkinter.constants.LEFT)
+            tkinter.Frame(buttons, width=10).pack(side=tkinter.constants.LEFT)
+            button = tkinter.Button(
                 buttons, text=u"Quit", width=10, command=self.quit)
-            button.pack(side=Tkconstants.RIGHT)
+            button.pack(side=tkinter.constants.RIGHT)
 
         def get_keypath(self):
-            keypath = tkFileDialog.askopenfilename(
+            keypath = tkinter.filedialog.askopenfilename(
                 parent=None, title=u"Select Adobe Adept \'.der\' key file",
                 defaultextension=u".der",
                 filetypes=[('Adobe Adept DER-encoded files', '.der'),
                            ('All Files', '.*')])
             if keypath:
                 keypath = os.path.normpath(keypath)
-                self.keypath.delete(0, Tkconstants.END)
+                self.keypath.delete(0, tkinter.constants.END)
                 self.keypath.insert(0, keypath)
             return
 
         def get_inpath(self):
-            inpath = tkFileDialog.askopenfilename(
+            inpath = tkinter.filedialog.askopenfilename(
                 parent=None, title=u"Select ADEPT-encrypted ePub file to decrypt",
                 defaultextension=u".epub", filetypes=[('ePub files', '.epub')])
             if inpath:
                 inpath = os.path.normpath(inpath)
-                self.inpath.delete(0, Tkconstants.END)
+                self.inpath.delete(0, tkinter.constants.END)
                 self.inpath.insert(0, inpath)
             return
 
         def get_outpath(self):
-            outpath = tkFileDialog.asksaveasfilename(
+            outpath = tkinter.filedialog.asksaveasfilename(
                 parent=None, title=u"Select unencrypted ePub file to produce",
                 defaultextension=u".epub", filetypes=[('ePub files', '.epub')])
             if outpath:
                 outpath = os.path.normpath(outpath)
-                self.outpath.delete(0, Tkconstants.END)
+                self.outpath.delete(0, tkinter.constants.END)
                 self.outpath.insert(0, outpath)
             return
 
@@ -587,11 +595,11 @@ def gui_main():
             else:
                 self.status['text'] = u"The was an error decrypting the file."
 
-    root = Tkinter.Tk()
+    root = tkinter.Tk()
     root.title(u"Adobe Adept ePub Decrypter v.{0}".format(__version__))
     root.resizable(True, False)
     root.minsize(300, 0)
-    DecryptionDialog(root).pack(fill=Tkconstants.X, expand=1)
+    DecryptionDialog(root).pack(fill=tkinter.constants.X, expand=1)
     root.mainloop()
     return 0
 

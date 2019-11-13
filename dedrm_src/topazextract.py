@@ -9,6 +9,10 @@
 #  5.0  - Fixed potential unicode problem with command line interface
 
 from __future__ import print_function
+from __future__ import absolute_import
+from builtins import str
+from builtins import range
+from builtins import object
 __version__ = '5.0'
 
 import sys
@@ -17,16 +21,16 @@ import zlib, zipfile, tempfile, shutil
 import traceback
 from struct import pack
 from struct import unpack
-from alfcrypto import Topaz_Cipher
+from .alfcrypto import Topaz_Cipher
 
-class SafeUnbuffered:
+class SafeUnbuffered(object):
     def __init__(self, stream):
         self.stream = stream
         self.encoding = stream.encoding
         if self.encoding == None:
             self.encoding = "utf-8"
     def write(self, data):
-        if isinstance(data,unicode):
+        if isinstance(data,str):
             data = data.encode(self.encoding,"replace")
         self.stream.write(data)
         self.stream.flush()
@@ -64,7 +68,7 @@ def unicode_argv():
             # Remove Python executable and commands if present
             start = argc.value - len(sys.argv)
             return [argv[i] for i in
-                    xrange(start, argc.value)]
+                    range(start, argc.value)]
         # if we don't have any arguments at all, just pass back script name
         # this should never happen
         return [u"mobidedrm.py"]
@@ -72,7 +76,7 @@ def unicode_argv():
         argvencoding = sys.stdin.encoding
         if argvencoding == None:
             argvencoding = 'utf-8'
-        return [arg if (type(arg) == unicode) else unicode(arg,argvencoding) for arg in sys.argv]
+        return [arg if (type(arg) == str) else str(arg,argvencoding) for arg in sys.argv]
 
 #global switch
 debug = False
@@ -82,7 +86,7 @@ if 'calibre' in sys.modules:
     from calibre_plugins.dedrm import kgenpids
 else:
     inCalibre = False
-    import kgenpids
+    from . import kgenpids
 
 
 class DrmException(Exception):
@@ -194,7 +198,7 @@ def decryptDkeyRecords(data,PID):
     return records
 
 
-class TopazBook:
+class TopazBook(object):
     def __init__(self, filename):
         self.fo = file(filename, 'rb')
         self.outdir = tempfile.mkdtemp()
@@ -328,7 +332,7 @@ class TopazBook:
             if inCalibre:
                 from calibre_plugins.dedrm import genbook
             else:
-                import genbook
+                from . import genbook
 
             rv = genbook.generateBook(self.outdir, raw, fixedimage)
             if rv == 0:
@@ -362,7 +366,7 @@ class TopazBook:
         if inCalibre:
             from calibre_plugins.dedrm import genbook
         else:
-            import genbook
+            from . import genbook
 
         rv = genbook.generateBook(self.outdir, raw, fixedimage)
         if rv == 0:

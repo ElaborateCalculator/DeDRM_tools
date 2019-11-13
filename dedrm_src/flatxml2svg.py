@@ -1,6 +1,10 @@
 #! /usr/bin/python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
+from __future__ import division
+from builtins import range
+from past.utils import old_div
+from builtins import object
 import sys
 import csv
 import os
@@ -73,7 +77,7 @@ class PParser(object):
         else:
             end = min(self.docSize, end)
         foundat = -1
-        for j in xrange(pos, end):
+        for j in range(pos, end):
             item = self.flatdoc[j]
             if item.find('=') >= 0:
                 (name, argres) = item.split('=',1)
@@ -101,7 +105,7 @@ class PParser(object):
     def getData(self, path):
         result = None
         cnt = len(self.flatdoc)
-        for j in xrange(cnt):
+        for j in range(cnt):
             item = self.flatdoc[j]
             if item.find('=') >= 0:
                 (name, argt) = item.split('=')
@@ -113,7 +117,7 @@ class PParser(object):
                 result = argres
                 break
         if (len(argres) > 0) :
-            for j in xrange(0,len(argres)):
+            for j in range(0,len(argres)):
                 argres[j] = int(argres[j])
         return result
 
@@ -127,7 +131,7 @@ class PParser(object):
             name = item
             argres = []
         if (len(argres) > 0) :
-            for j in xrange(0,len(argres)):
+            for j in range(0,len(argres)):
                 argres[j] = int(argres[j])
         if (name.endswith(path)):
             result = argres
@@ -136,7 +140,7 @@ class PParser(object):
     def getDataTemp(self, path):
         result = None
         cnt = len(self.temp)
-        for j in xrange(cnt):
+        for j in range(cnt):
             item = self.temp[j]
             if item.find('=') >= 0:
                 (name, argt) = item.split('=')
@@ -149,7 +153,7 @@ class PParser(object):
                 self.temp.pop(j)
                 break
         if (len(argres) > 0) :
-            for j in xrange(0,len(argres)):
+            for j in range(0,len(argres)):
                 argres[j] = int(argres[j])
         return result
 
@@ -186,7 +190,7 @@ def convert2SVG(gdict, flat_xml, pageid, previd, nextid, svgDir, raw, meta_array
     mlst.append('<?xml version="1.0" standalone="no"?>\n')
     if (raw):
         mlst.append('<!DOCTYPE svg PUBLIC "-//W3C/DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">\n')
-        mlst.append('<svg width="%fin" height="%fin" viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">\n' % (pp.pw / scaledpi, pp.ph / scaledpi, pp.pw -1, pp.ph -1))
+        mlst.append('<svg width="%fin" height="%fin" viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1">\n' % (old_div(pp.pw, scaledpi), old_div(pp.ph, scaledpi), pp.pw -1, pp.ph -1))
         mlst.append('<title>Page %d - %s by %s</title>\n' % (pageid, meta_array['Title'],meta_array['Authors']))
     else:
         mlst.append('<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">\n')
@@ -220,15 +224,15 @@ def convert2SVG(gdict, flat_xml, pageid, previd, nextid, svgDir, raw, meta_array
     if (pp.gid != None):
         mlst.append('<defs>\n')
         gdefs = pp.getGlyphs()
-        for j in xrange(0,len(gdefs)):
+        for j in range(0,len(gdefs)):
             mlst.append(gdefs[j])
         mlst.append('</defs>\n')
     img = pp.getImages()
     if (img != None):
-        for j in xrange(0,len(img)):
+        for j in range(0,len(img)):
             mlst.append(img[j])
     if (pp.gid != None):
-        for j in xrange(0,len(pp.gid)):
+        for j in range(0,len(pp.gid)):
             mlst.append('<use xlink:href="#gl%d" x="%d" y="%d" />\n' % (pp.gid[j], pp.gx[j], pp.gy[j]))
     if (img == None or len(img) == 0) and (pp.gid == None or len(pp.gid) == 0):
         xpos = "%d" % (pp.pw // 3)

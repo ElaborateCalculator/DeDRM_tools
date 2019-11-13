@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import print_function
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import chr
+from builtins import range
+from builtins import object
 from __future__ import with_statement
 
 # k4mobidedrm.py
@@ -69,7 +77,7 @@ import getopt
 import re
 import traceback
 import time
-import htmlentitydefs
+import html.entities
 import json
 
 class DrmException(Exception):
@@ -87,23 +95,23 @@ if inCalibre:
     from calibre_plugins.dedrm import androidkindlekey
     from calibre_plugins.dedrm import kfxdedrm
 else:
-    import mobidedrm
-    import topazextract
-    import kgenpids
-    import androidkindlekey
-    import kfxdedrm
+    from . import mobidedrm
+    from . import topazextract
+    from . import kgenpids
+    from . import androidkindlekey
+    from . import kfxdedrm
 
 # Wrap a stream so that output gets flushed immediately
 # and also make sure that any unicode strings get
 # encoded using "replace" before writing them.
-class SafeUnbuffered:
+class SafeUnbuffered(object):
     def __init__(self, stream):
         self.stream = stream
         self.encoding = stream.encoding
         if self.encoding == None:
             self.encoding = "utf-8"
     def write(self, data):
-        if isinstance(data,unicode):
+        if isinstance(data,str):
             data = data.encode(self.encoding,"replace")
         self.stream.write(data)
         self.stream.flush()
@@ -141,7 +149,7 @@ def unicode_argv():
             # Remove Python executable and commands if present
             start = argc.value - len(sys.argv)
             return [argv[i] for i in
-                    xrange(start, argc.value)]
+                    range(start, argc.value)]
         # if we don't have any arguments at all, just pass back script name
         # this should never happen
         return [u"mobidedrm.py"]
@@ -149,7 +157,7 @@ def unicode_argv():
         argvencoding = sys.stdin.encoding
         if argvencoding == None:
             argvencoding = "utf-8"
-        return [arg if (type(arg) == unicode) else unicode(arg,argvencoding) for arg in sys.argv]
+        return [arg if (type(arg) == str) else str(arg,argvencoding) for arg in sys.argv]
 
 # cleanup unicode filenames
 # borrowed from calibre from calibre/src/calibre/__init__.py
@@ -184,15 +192,15 @@ def unescape(text):
             # character reference
             try:
                 if text[:3] == u"&#x":
-                    return unichr(int(text[3:-1], 16))
+                    return chr(int(text[3:-1], 16))
                 else:
-                    return unichr(int(text[2:-1]))
+                    return chr(int(text[2:-1]))
             except ValueError:
                 pass
         else:
             # named entity
             try:
-                text = unichr(htmlentitydefs.name2codepoint[text[1:-1]])
+                text = chr(html.entities.name2codepoint[text[1:-1]])
             except KeyError:
                 pass
         return text # leave as is

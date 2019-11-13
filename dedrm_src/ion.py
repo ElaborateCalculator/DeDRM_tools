@@ -3,6 +3,11 @@
 # Pascal implementation by lulzkabulz. Python translation by apprenticenaomi. DeDRM integration by anon.
 # BinaryIon.pas + DrmIon.pas + IonSymbols.pas
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
 from __future__ import with_statement
 
 import collections
@@ -13,9 +18,9 @@ import os.path
 import struct
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import StringIO
 
 from Crypto.Cipher import AES
 from Crypto.Util.py3compat import bchr, bord
@@ -148,7 +153,7 @@ class SymbolTable(object):
             self.table.append("%s#%d" % (name, i + 1))
 
 
-class ParserState:
+class ParserState(object):
     Invalid,BeforeField,BeforeTID,BeforeValue,AfterValue,EOF = 1,2,3,4,5,6
 
 ContainerRec = collections.namedtuple("ContainerRec", "nextpos, tid, remaining")
@@ -245,7 +250,7 @@ class BinaryIonParser(object):
             else:
                 _assert(self.state == ParserState.EOF)
 
-    def next(self):
+    def __next__(self):
         if self.hasnext():
             self.needhasnext = True
             return self.valuetid
@@ -426,7 +431,7 @@ class BinaryIonParser(object):
         self.stream.seek(count, os.SEEK_CUR)
 
     def parsesymboltable(self):
-        self.next() # shouldn't do anything?
+        next(self) # shouldn't do anything?
 
         _assert(self.valuetid == TID_STRUCT)
 
@@ -435,7 +440,7 @@ class BinaryIonParser(object):
 
         self.stepin()
 
-        fieldtype = self.next()
+        fieldtype = next(self)
         while fieldtype != -1:
             if not self.valueisnull:
                 _assert(self.valuefieldid == SID_IMPORTS, "Unsupported symbol table field id")
@@ -443,7 +448,7 @@ class BinaryIonParser(object):
                 if fieldtype == TID_LIST:
                     self.gatherimports()
 
-            fieldtype = self.next()
+            fieldtype = next(self)
 
         self.stepout()
         self.didimports = True
@@ -451,12 +456,12 @@ class BinaryIonParser(object):
     def gatherimports(self):
         self.stepin()
 
-        t = self.next()
+        t = next(self)
         while t != -1:
             if not self.valueisnull and t == TID_STRUCT:
                 self.readimport()
 
-            t = self.next()
+            t = next(self)
 
         self.stepout()
 
@@ -467,7 +472,7 @@ class BinaryIonParser(object):
 
         self.stepin()
 
-        t = self.next()
+        t = next(self)
         while t != -1:
             if not self.valueisnull and self.valuefieldid != SID_UNKNOWN:
                 if self.valuefieldid == SID_NAME:
@@ -477,7 +482,7 @@ class BinaryIonParser(object):
                 elif self.valuefieldid == SID_MAX_ID:
                     maxid = self.intvalue()
 
-            t = self.next()
+            t = next(self)
 
         self.stepout()
 
@@ -644,7 +649,7 @@ class BinaryIonParser(object):
             else:
                 L = ""
 
-            t = self.next()
+            t = next(self)
             if t in [TID_STRUCT, TID_LIST]:
                 if L != "":
                     lst.append(indent + L)
@@ -782,18 +787,18 @@ class DrmIonVoucher(object):
         self.drmkey = BinaryIonParser(StringIO(b))
         addprottable(self.drmkey)
 
-        _assert(self.drmkey.hasnext() and self.drmkey.next() == TID_LIST and self.drmkey.gettypename() == "com.amazon.drm.KeySet@1.0",
+        _assert(self.drmkey.hasnext() and next(self.drmkey) == TID_LIST and self.drmkey.gettypename() == "com.amazon.drm.KeySet@1.0",
                 "Expected KeySet, got %s" % self.drmkey.gettypename())
 
         self.drmkey.stepin()
         while self.drmkey.hasnext():
-            self.drmkey.next()
+            next(self.drmkey)
             if self.drmkey.gettypename() != "com.amazon.drm.SecretKey@1.0":
                 continue
 
             self.drmkey.stepin()
             while self.drmkey.hasnext():
-                self.drmkey.next()
+                next(self.drmkey)
                 if self.drmkey.getfieldname() == "algorithm":
                     _assert(self.drmkey.stringvalue() == "AES", "Unknown cipher algorithm: %s" % self.drmkey.stringvalue())
                 elif self.drmkey.getfieldname() == "format":
@@ -809,12 +814,12 @@ class DrmIonVoucher(object):
     def parse(self):
         self.envelope.reset()
         _assert(self.envelope.hasnext(), "Envelope is empty")
-        _assert(self.envelope.next() == TID_STRUCT and self.envelope.gettypename() == "com.amazon.drm.VoucherEnvelope@1.0",
+        _assert(next(self.envelope) == TID_STRUCT and self.envelope.gettypename() == "com.amazon.drm.VoucherEnvelope@1.0",
                 "Unknown type encountered in envelope, expected VoucherEnvelope")
 
         self.envelope.stepin()
         while self.envelope.hasnext():
-            self.envelope.next()
+            next(self.envelope)
             field = self.envelope.getfieldname()
             if field == "voucher":
                 self.voucher = BinaryIonParser(StringIO(self.envelope.lobvalue()))
@@ -827,7 +832,7 @@ class DrmIonVoucher(object):
 
             self.envelope.stepin()
             while self.envelope.hasnext():
-                self.envelope.next()
+                next(self.envelope)
                 field = self.envelope.getfieldname()
                 if field == "encryption_algorithm":
                     self.encalgorithm = self.envelope.stringvalue()
@@ -838,7 +843,7 @@ class DrmIonVoucher(object):
                 elif field == "lock_parameters":
                     self.envelope.stepin()
                     while self.envelope.hasnext():
-                        _assert(self.envelope.next() == TID_STRING, "Expected string list for lock_parameters")
+                        _assert(next(self.envelope) == TID_STRING, "Expected string list for lock_parameters")
                         self.lockparams.append(self.envelope.stringvalue())
                     self.envelope.stepout()
 
@@ -848,12 +853,12 @@ class DrmIonVoucher(object):
 
     def parsevoucher(self):
         _assert(self.voucher.hasnext(), "Voucher is empty")
-        _assert(self.voucher.next() == TID_STRUCT and self.voucher.gettypename() == "com.amazon.drm.Voucher@1.0",
+        _assert(next(self.voucher) == TID_STRUCT and self.voucher.gettypename() == "com.amazon.drm.Voucher@1.0",
                 "Unknown type, expected Voucher")
 
         self.voucher.stepin()
         while self.voucher.hasnext():
-            self.voucher.next()
+            next(self.voucher)
 
             if self.voucher.getfieldname() == "cipher_iv":
                 self.cipheriv = self.voucher.lobvalue()
@@ -864,7 +869,7 @@ class DrmIonVoucher(object):
                         "Unknown license: %s" % self.voucher.gettypename())
                 self.voucher.stepin()
                 while self.voucher.hasnext():
-                    self.voucher.next()
+                    next(self.voucher)
                     if self.voucher.getfieldname() == "license_type":
                         self.license_type = self.voucher.stringvalue()
                 self.voucher.stepout()
@@ -906,8 +911,8 @@ class DrmIon(object):
         self.ion.reset()
 
         _assert(self.ion.hasnext(), "DRMION envelope is empty")
-        _assert(self.ion.next() == TID_SYMBOL and self.ion.gettypename() == "doctype", "Expected doctype symbol")
-        _assert(self.ion.next() == TID_LIST and self.ion.gettypename() in ["com.amazon.drm.Envelope@1.0", "com.amazon.drm.Envelope@2.0"],
+        _assert(next(self.ion) == TID_SYMBOL and self.ion.gettypename() == "doctype", "Expected doctype symbol")
+        _assert(next(self.ion) == TID_LIST and self.ion.gettypename() in ["com.amazon.drm.Envelope@1.0", "com.amazon.drm.Envelope@2.0"],
                 "Unknown type encountered in DRMION envelope, expected Envelope, got %s" % self.ion.gettypename())
 
         while True:
@@ -916,12 +921,12 @@ class DrmIon(object):
 
             self.ion.stepin()
             while self.ion.hasnext():
-                self.ion.next()
+                next(self.ion)
 
                 if self.ion.gettypename() in ["com.amazon.drm.EnvelopeMetadata@1.0", "com.amazon.drm.EnvelopeMetadata@2.0"]:
                     self.ion.stepin()
                     while self.ion.hasnext():
-                        self.ion.next()
+                        next(self.ion)
                         if self.ion.getfieldname() != "encryption_voucher":
                             continue
 
@@ -942,7 +947,7 @@ class DrmIon(object):
                     civ = None
                     self.ion.stepin()
                     while self.ion.hasnext():
-                        self.ion.next()
+                        next(self.ion)
                         if self.ion.gettypename() == "com.amazon.drm.Compressed@1.0":
                             decompress = True
                         if self.ion.getfieldname() == "cipher_text":
@@ -957,7 +962,7 @@ class DrmIon(object):
             self.ion.stepout()
             if not self.ion.hasnext():
                 break
-            self.ion.next()
+            next(self.ion)
 
     def print_(self, lst):
         self.ion.print_(lst)

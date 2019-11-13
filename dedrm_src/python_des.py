@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
+from builtins import chr
+from builtins import str
+from builtins import zip
+from builtins import object
 import sys
 
 ECB =   0

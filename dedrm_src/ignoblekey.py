@@ -15,6 +15,11 @@ from __future__ import with_statement
 #   1.0 - Initial release
 #   1.1 - remove duplicates and return last key as single key
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import range
+from builtins import object
 """
 Get Barnes & Noble EPUB user key from nook Studio log file
 """
@@ -32,14 +37,14 @@ import re
 # Wrap a stream so that output gets flushed immediately
 # and also make sure that any unicode strings get
 # encoded using "replace" before writing them.
-class SafeUnbuffered:
+class SafeUnbuffered(object):
     def __init__(self, stream):
         self.stream = stream
         self.encoding = stream.encoding
         if self.encoding == None:
             self.encoding = "utf-8"
     def write(self, data):
-        if isinstance(data,unicode):
+        if isinstance(data,str):
             data = data.encode(self.encoding,"replace")
         self.stream.write(data)
         self.stream.flush()
@@ -80,7 +85,7 @@ def unicode_argv():
             # Remove Python executable and commands if present
             start = argc.value - len(sys.argv)
             return [argv[i] for i in
-                    xrange(start, argc.value)]
+                    range(start, argc.value)]
         # if we don't have any arguments at all, just pass back script name
         # this should never happen
         return [u"ignoblekey.py"]
@@ -88,7 +93,7 @@ def unicode_argv():
         argvencoding = sys.stdin.encoding
         if argvencoding == None:
             argvencoding = "utf-8"
-        return [arg if (type(arg) == unicode) else unicode(arg,argvencoding) for arg in sys.argv]
+        return [arg if (type(arg) == str) else str(arg,argvencoding) for arg in sys.argv]
 
 class DrmException(Exception):
     pass
@@ -98,17 +103,17 @@ def getNookLogFiles():
     logFiles = []
     found = False
     if iswindows:
-        import _winreg as winreg
+        import winreg as winreg
 
         # some 64 bit machines do not have the proper registry key for some reason
         # or the python interface to the 32 vs 64 bit registry is broken
         paths = set()
-        if 'LOCALAPPDATA' in os.environ.keys():
+        if 'LOCALAPPDATA' in list(os.environ.keys()):
             # Python 2.x does not return unicode env. Use Python 3.x
             path = winreg.ExpandEnvironmentStrings(u"%LOCALAPPDATA%")
             if os.path.isdir(path):
                 paths.add(path)
-        if 'USERPROFILE' in os.environ.keys():
+        if 'USERPROFILE' in list(os.environ.keys()):
             # Python 2.x does not return unicode env. Use Python 3.x
             path = winreg.ExpandEnvironmentStrings(u"%USERPROFILE%")+u"\\AppData\\Local"
             if os.path.isdir(path):
@@ -280,27 +285,27 @@ def cli_main():
 
 def gui_main():
     try:
-        import Tkinter
-        import Tkconstants
-        import tkMessageBox
+        import tkinter
+        import tkinter.constants
+        import tkinter.messagebox
         import traceback
     except:
         return cli_main()
 
-    class ExceptionDialog(Tkinter.Frame):
+    class ExceptionDialog(tkinter.Frame):
         def __init__(self, root, text):
-            Tkinter.Frame.__init__(self, root, border=5)
-            label = Tkinter.Label(self, text=u"Unexpected error:",
-                                  anchor=Tkconstants.W, justify=Tkconstants.LEFT)
-            label.pack(fill=Tkconstants.X, expand=0)
-            self.text = Tkinter.Text(self)
-            self.text.pack(fill=Tkconstants.BOTH, expand=1)
+            tkinter.Frame.__init__(self, root, border=5)
+            label = tkinter.Label(self, text=u"Unexpected error:",
+                                  anchor=tkinter.constants.W, justify=tkinter.constants.LEFT)
+            label.pack(fill=tkinter.constants.X, expand=0)
+            self.text = tkinter.Text(self)
+            self.text.pack(fill=tkinter.constants.BOTH, expand=1)
 
-            self.text.insert(Tkconstants.END, text)
+            self.text.insert(tkinter.constants.END, text)
 
 
     argv=unicode_argv()
-    root = Tkinter.Tk()
+    root = tkinter.Tk()
     root.withdraw()
     progpath, progname = os.path.split(argv[0])
     success = False
@@ -318,14 +323,14 @@ def gui_main():
             with file(outfile, 'w') as keyfileout:
                 keyfileout.write(key)
             success = True
-            tkMessageBox.showinfo(progname, u"Key successfully retrieved to {0}".format(outfile))
+            tkinter.messagebox.showinfo(progname, u"Key successfully retrieved to {0}".format(outfile))
     except DrmException as e:
-        tkMessageBox.showerror(progname, u"Error: {0}".format(str(e)))
+        tkinter.messagebox.showerror(progname, u"Error: {0}".format(str(e)))
     except Exception:
         root.wm_state('normal')
         root.title(progname)
         text = traceback.format_exc()
-        ExceptionDialog(root, text).pack(fill=Tkconstants.BOTH, expand=1)
+        ExceptionDialog(root, text).pack(fill=tkinter.constants.BOTH, expand=1)
         root.mainloop()
     if not success:
         return 1

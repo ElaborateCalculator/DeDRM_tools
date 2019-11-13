@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # vim:fileencoding=UTF-8:ts=4:sw=4:sta:et:sts=4:ai
 
+from __future__ import print_function
+from builtins import str
+from builtins import object
 from __future__ import with_statement
 __license__ = 'GPL v3'
 
@@ -13,7 +16,7 @@ from calibre.utils.config import dynamic, config_dir, JSONConfig
 from calibre_plugins.dedrm.__init__ import PLUGIN_NAME, PLUGIN_VERSION
 from calibre.constants import iswindows, isosx
 
-class DeDRM_Prefs():
+class DeDRM_Prefs(object):
     def __init__(self):
         JSON_PATH = os.path.join(u"plugins", PLUGIN_NAME.strip().lower().replace(' ', '_') + '.json')
         self.dedrmprefs = JSONConfig(JSON_PATH)
@@ -61,7 +64,7 @@ class DeDRM_Prefs():
 
     def addnamedvaluetoprefs(self, prefkind, keyname, keyvalue):
         try:
-            if keyvalue not in self.dedrmprefs[prefkind].values():
+            if keyvalue not in list(self.dedrmprefs[prefkind].values()):
                 # ensure that the keyname is unique
                 # by adding a number (starting with 2) to the name if it is not
                 namecount = 1

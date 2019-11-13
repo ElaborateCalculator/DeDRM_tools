@@ -15,13 +15,15 @@
 Re-write zip (or ePub) fixing problems with file names (and mimetype entry).
 """
 from __future__ import print_function
+from __future__ import absolute_import
 
+from builtins import object
 __license__ = 'GPL v3'
 __version__ = "1.1"
 
 import sys
 import zlib
-import zipfilerugged
+from . import zipfilerugged
 import os
 import os.path
 import getopt
@@ -41,7 +43,7 @@ class ZipInfo(zipfilerugged.ZipInfo):
         super(ZipInfo, self).__init__(*args, **kwargs)
         self.compress_type = compress_type
 
-class fixZip:
+class fixZip(object):
     def __init__(self, zinput, zoutput):
         self.ztype = 'zip'
         if zinput.lower().find('.epub') >= 0 :

@@ -68,10 +68,18 @@
 #  0.22 - Unicode and plugin support, different image folders for PMLZ and source
 #  0.23 - moved unicode_argv call inside main for Windows DeDRM compatibility
 
+from __future__ import print_function
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import chr
+from builtins import str
+from builtins import range
+from builtins import object
 __version__='0.23'
 
 import sys, re
-import struct, binascii, getopt, zlib, os, os.path, urllib, tempfile, traceback
+import struct, binascii, getopt, zlib, os, os.path, urllib.request, urllib.parse, urllib.error, tempfile, traceback
 
 if 'calibre' in sys.modules:
     inCalibre = True
@@ -81,14 +89,14 @@ else:
 # Wrap a stream so that output gets flushed immediately
 # and also make sure that any unicode strings get
 # encoded using "replace" before writing them.
-class SafeUnbuffered:
+class SafeUnbuffered(object):
     def __init__(self, stream):
         self.stream = stream
         self.encoding = stream.encoding
         if self.encoding == None:
             self.encoding = "utf-8"
     def write(self, data):
-        if isinstance(data,unicode):
+        if isinstance(data,str):
             data = data.encode(self.encoding,"replace")
         self.stream.write(data)
         self.stream.flush()
@@ -126,7 +134,7 @@ def unicode_argv():
             # Remove Python executable and commands if present
             start = argc.value - len(sys.argv)
             return [argv[i] for i in
-                    xrange(start, argc.value)]
+                    range(start, argc.value)]
         # if we don't have any arguments at all, just pass back script name
         # this should never happen
         return [u"mobidedrm.py"]
@@ -134,7 +142,7 @@ def unicode_argv():
         argvencoding = sys.stdin.encoding
         if argvencoding == None:
             argvencoding = "utf-8"
-        return [arg if (type(arg) == unicode) else unicode(arg,argvencoding) for arg in sys.argv]
+        return [arg if (type(arg) == str) else str(arg,argvencoding) for arg in sys.argv]
 
 Des = None
 if iswindows:
@@ -142,28 +150,28 @@ if iswindows:
     if inCalibre:
         from calibre_plugins.dedrm import pycrypto_des
     else:
-        import pycrypto_des
+        from . import pycrypto_des
     Des = pycrypto_des.load_pycrypto()
     if Des == None:
         # they try with openssl
         if inCalibre:
             from calibre_plugins.dedrm import openssl_des
         else:
-            import openssl_des
+            from . import openssl_des
         Des = openssl_des.load_libcrypto()
 else:
     # first try with openssl
     if inCalibre:
         from calibre_plugins.dedrm import openssl_des
     else:
-        import openssl_des
+        from . import openssl_des
     Des = openssl_des.load_libcrypto()
     if Des == None:
         # then try with pycrypto
         if inCalibre:
             from calibre_plugins.dedrm import pycrypto_des
         else:
-            import pycrypto_des
+            from . import pycrypto_des
         Des = pycrypto_des.load_pycrypto()
 
 # if that did not work then use pure python implementation
@@ -172,7 +180,7 @@ if Des == None:
     if inCalibre:
         from calibre_plugins.dedrm import python_des
     else:
-        import python_des
+        from . import python_des
     Des = python_des.Des
     # Import Psyco if available
     try:
@@ -210,7 +218,7 @@ class Sectionizer(object):
             else:
                 raise ValueError('Invalid file format')
         self.sections = []
-        for i in xrange(self.num_sections):
+        for i in range(self.num_sections):
             offset, a1,a2,a3,a4 = struct.unpack('>LBBBB', self.contents[78+i*8:78+i*8+8])
             flags, val = a1, a2<<16|a3<<8|a4
             self.sections.append( (offset, flags, val) )
@@ -250,7 +258,7 @@ def fixKey(key):
 def deXOR(text, sp, table):
     r=''
     j = sp
-    for i in xrange(len(text)):
+    for i in range(len(text)):
         r += chr(ord(table[j]) ^ ord(text[i]))
         j = j + 1
         if j == len(table):
@@ -276,7 +284,7 @@ class EreaderProcessor(object):
         def unshuff(data, shuf):
             r = [''] * len(data)
             j = 0
-            for i in xrange(len(data)):
+            for i in range(len(data)):
                 j = (j + shuf) % len(data)
                 r[j] = data[i]
             assert    len("".join(r)) == len(data)
@@ -361,7 +369,7 @@ class EreaderProcessor(object):
         sect = self.section_reader(self.first_image_page + i)
         name = sect[4:4+32].strip('\0')
         data = sect[62:]
-        return sanitizeFileName(unicode(name,'windows-1252')), data
+        return sanitizeFileName(str(name,'windows-1252')), data
 
 
     # def getChapterNamePMLOffsetData(self):
@@ -410,7 +418,7 @@ class EreaderProcessor(object):
     def getText(self):
         des = Des(fixKey(self.content_key))
         r = ''
-        for i in xrange(self.num_text_pages):
+        for i in range(self.num_text_pages):
             logging.debug('get page %d', i)
             r += zlib.decompress(des.decrypt(self.section_reader(1 + i)))
 
@@ -422,7 +430,7 @@ class EreaderProcessor(object):
             fnote_ids = deXOR(sect, 0, self.xortable)
             # the remaining records of the footnote sections need to be decoded with the content_key and zlib inflated
             des = Des(fixKey(self.content_key))
-            for i in xrange(1,self.num_footnote_pages):
+            for i in range(1,self.num_footnote_pages):
                 logging.debug('get footnotepage %d', i)
                 id_len = ord(fnote_ids[2])
                 id = fnote_ids[3:3+id_len]
@@ -446,7 +454,7 @@ class EreaderProcessor(object):
             sbar_ids = deXOR(sect, 0, self.xortable)
             # the remaining records of the sidebar sections need to be decoded with the content_key and zlib inflated
             des = Des(fixKey(self.content_key))
-            for i in xrange(1,self.num_sidebar_pages):
+            for i in range(1,self.num_sidebar_pages):
                 id_len = ord(sbar_ids[2])
                 id = sbar_ids[3:3+id_len]
                 smarker = '<sidebar id="%s">\n' % id
@@ -460,7 +468,7 @@ class EreaderProcessor(object):
 def cleanPML(pml):
     # Convert special characters to proper PML code.  High ASCII start at (\x80, \a128) and go up to (\xff, \a255)
     pml2 = pml
-    for k in xrange(128,256):
+    for k in range(128,256):
         badChar = chr(k)
         pml2 = pml2.replace(badChar, '\\a%03d' % k)
     return pml2
@@ -488,7 +496,7 @@ def decryptBook(infile, outpath, make_pmlz, user_key):
             print(u"Extracting images")
             if not os.path.exists(imagedirpath):
                 os.makedirs(imagedirpath)
-            for i in xrange(er.getNumImages()):
+            for i in range(er.getNumImages()):
                 name, contents = er.getImage(i)
                 file(os.path.join(imagedirpath, name), 'wb').write(contents)
 

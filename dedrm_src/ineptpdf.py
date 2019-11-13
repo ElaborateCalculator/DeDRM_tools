@@ -1,6 +1,17 @@
 #! /usr/bin/python
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+from __future__ import print_function
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import map
+from builtins import chr
+from builtins import zip
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from __future__ import with_statement
 
 # ineptpdf.pyw, version 8.0.6
@@ -81,14 +92,14 @@ import xml.etree.ElementTree as etree
 # Wrap a stream so that output gets flushed immediately
 # and also make sure that any unicode strings get
 # encoded using "replace" before writing them.
-class SafeUnbuffered:
+class SafeUnbuffered(object):
     def __init__(self, stream):
         self.stream = stream
         self.encoding = stream.encoding
         if self.encoding == None:
             self.encoding = "utf-8"
     def write(self, data):
-        if isinstance(data,unicode):
+        if isinstance(data,str):
             data = data.encode(self.encoding,"replace")
         self.stream.write(data)
         self.stream.flush()
@@ -126,13 +137,13 @@ def unicode_argv():
             # Remove Python executable and commands if present
             start = argc.value - len(sys.argv)
             return [argv[i] for i in
-                    xrange(start, argc.value)]
+                    range(start, argc.value)]
         return [u"ineptpdf.py"]
     else:
         argvencoding = sys.stdin.encoding
         if argvencoding == None:
             argvencoding = "utf-8"
-        return [arg if (type(arg) == unicode) else unicode(arg,argvencoding) for arg in sys.argv]
+        return [arg if (type(arg) == str) else str(arg,argvencoding) for arg in sys.argv]
 
 
 class ADEPTError(Exception):
@@ -313,7 +324,7 @@ def _load_crypto_pycrypto():
                 lengthList = self.get(lengthLength)
                 if lengthList % length != 0:
                     raise ASN1Error("Error decoding ASN.1")
-                lengthList = int(lengthList/length)
+                lengthList = int(old_div(lengthList,length))
                 l = [0] * lengthList
                 for x in range(lengthList):
                     l[x] = self.get(length)
@@ -388,12 +399,12 @@ def _load_crypto_pycrypto():
     class RSA(object):
         def __init__(self, der):
             key = ASN1Parser([ord(x) for x in der])
-            key = [key.getChild(x).value for x in xrange(1, 4)]
+            key = [key.getChild(x).value for x in range(1, 4)]
             key = [self.bytesToNumber(v) for v in key]
             self._rsa = _RSA.construct(key)
 
         def bytesToNumber(self, bytes):
-            total = 0L
+            total = 0
             for byte in bytes:
                 total = (total << 8) + byte
             return total
@@ -419,9 +430,9 @@ ARC4, RSA, AES = _load_crypto()
 
 
 try:
-    from cStringIO import StringIO
+    from io import StringIO
 except ImportError:
-    from StringIO import StringIO
+    from io import StringIO
 
 
 # Do we generate cross reference streams on output?
@@ -1038,7 +1049,7 @@ def resolve_all(x):
     if isinstance(x, list):
         x = [ resolve_all(v) for v in x ]
     elif isinstance(x, dict):
-        for (k,v) in x.iteritems():
+        for (k,v) in x.items():
             x[k] = resolve_all(v)
     return x
 
@@ -1052,7 +1063,7 @@ def decipher_all(decipher, objid, genno, x):
     if isinstance(x, list):
         x = [decf(v) for v in x]
     elif isinstance(x, dict):
-        x = dict((k, decf(v)) for (k, v) in x.iteritems())
+        x = dict((k, decf(v)) for (k, v) in x.items())
     return x
 
 
@@ -1218,7 +1229,7 @@ class PDFStream(PDFObject):
                     columns = int_value(params['Columns'])
                     buf = ''
                     ent0 = '\x00' * columns
-                    for i in xrange(0, len(data), columns+1):
+                    for i in range(0, len(data), columns+1):
                         pred = data[i]
                         ent1 = data[i+1:i+1+columns]
                         if pred == '\x02':
@@ -1279,7 +1290,7 @@ class PDFXRef(object):
         return '<PDFXRef: objs=%d>' % len(self.offsets)
 
     def objids(self):
-        return self.offsets.iterkeys()
+        return iter(self.offsets.keys())
 
     def load(self, parser):
         self.offsets = {}
@@ -1297,10 +1308,10 @@ class PDFXRef(object):
             if len(f) != 2:
                 raise PDFNoValidXRef('Trailer not found: %r: line=%r' % (parser, line))
             try:
-                (start, nobjs) = map(int, f)
+                (start, nobjs) = list(map(int, f))
             except ValueError:
                 raise PDFNoValidXRef('Invalid line: %r: line=%r' % (parser, line))
-            for objid in xrange(start, start+nobjs):
+            for objid in range(start, start+nobjs):
                 try:
                     (_, line) = parser.nextline()
                 except PSEOF:
@@ -1352,7 +1363,7 @@ class PDFXRefStream(object):
 
     def objids(self):
         for first, size in self.index:
-            for objid in xrange(first, first + size):
+            for objid in range(first, first + size):
                 yield objid
 
     def load(self, parser, debug=0):
@@ -1365,8 +1376,8 @@ class PDFXRefStream(object):
             raise PDFNoValidXRef('Invalid PDF stream spec.')
         size = stream.dic['Size']
         index = stream.dic.get('Index', (0,size))
-        self.index = zip(islice(index, 0, None, 2),
-                         islice(index, 1, None, 2))
+        self.index = list(zip(islice(index, 0, None, 2),
+                         islice(index, 1, None, 2)))
         (self.fl1, self.fl2, self.fl3) = stream.dic['W']
         self.data = stream.get_data()
         self.entlen = self.fl1+self.fl2+self.fl3
@@ -1497,7 +1508,7 @@ class PDFDocument(object):
         # global static principal key for German Onleihe / Bibliothek Digital
         principalkeys = { 'bibliothek-digital.de': 'rRwGv2tbpKov1krvv7PO0ws9S436/lArPlfipz5Pqhw='.decode('base64')}
         self.is_printable = self.is_modifiable = self.is_extractable = True
-        length = int_value(param.get('Length', 0)) / 8
+        length = old_div(int_value(param.get('Length', 0)), 8)
         edcdata = str_value(param.get('EDCData')).decode('base64')
         pdrllic = str_value(param.get('PDRLLic')).decode('base64')
         pdrlpol = str_value(param.get('PDRLPol')).decode('base64')
@@ -1561,9 +1572,9 @@ class PDFDocument(object):
             hash.update('ffffffff'.decode('hex'))
         if 5 <= R:
             # 8
-            for _ in xrange(50):
-                hash = hashlib.md5(hash.digest()[:length/8])
-        key = hash.digest()[:length/8]
+            for _ in range(50):
+                hash = hashlib.md5(hash.digest()[:old_div(length,8)])
+        key = hash.digest()[:old_div(length,8)]
         if R == 2:
             # Algorithm 3.4
             u1 = ARC4.new(key).decrypt(password)
@@ -1572,7 +1583,7 @@ class PDFDocument(object):
             hash = hashlib.md5(self.PASSWORD_PADDING) # 2
             hash.update(docid[0]) # 3
             x = ARC4.new(key).decrypt(hash.digest()[:16]) # 4
-            for i in xrange(1,19+1):
+            for i in range(1,19+1):
                 k = ''.join( chr(ord(c) ^ i) for c in key )
                 x = ARC4.new(k).decrypt(x)
             u1 = x+x # 32bytes total
@@ -1605,7 +1616,7 @@ class PDFDocument(object):
     def initialize_ebx(self, password, docid, param):
         self.is_printable = self.is_modifiable = self.is_extractable = True
         rsa = RSA(password)
-        length = int_value(param.get('Length', 0)) / 8
+        length = old_div(int_value(param.get('Length', 0)), 8)
         rights = str_value(param.get('ADEPT_LICENSE')).decode('base64')
         rights = zlib.decompress(rights, -15)
         rights = etree.fromstring(rights)
@@ -2036,7 +2047,7 @@ class PDFSerializer(object):
         if not gen_xref_stm:
             self.write('xref\n')
             self.write('0 %d\n' % (maxobj + 1,))
-            for objid in xrange(0, maxobj + 1):
+            for objid in range(0, maxobj + 1):
                 if objid in xrefs:
                     # force the genno to be 0
                     self.write("%010d 00000 n \n" % xrefs[objid][0])
@@ -2130,7 +2141,7 @@ class PDFSerializer(object):
                 del obj['Type']
             # end - hope this doesn't have bad effects
             self.write('<<')
-            for key, val in obj.items():
+            for key, val in list(obj.items()):
                 self.write('/%s' % key)
                 self.serialize_object(val)
             self.write('>>')
@@ -2145,7 +2156,7 @@ class PDFSerializer(object):
             if self.last.isalnum():
                 self.write(' ')
             self.write(str(obj).lower())
-        elif isinstance(obj, (int, long)):
+        elif isinstance(obj, int):
             if self.last.isalnum():
                 self.write(' ')
             self.write(str(obj))
@@ -2223,79 +2234,79 @@ def cli_main():
 
 def gui_main():
     try:
-        import Tkinter
-        import Tkconstants
-        import tkFileDialog
-        import tkMessageBox
+        import tkinter
+        import tkinter.constants
+        import tkinter.filedialog
+        import tkinter.messagebox
         import traceback
     except:
         return cli_main()
 
-    class DecryptionDialog(Tkinter.Frame):
+    class DecryptionDialog(tkinter.Frame):
         def __init__(self, root):
-            Tkinter.Frame.__init__(self, root, border=5)
-            self.status = Tkinter.Label(self, text=u"Select files for decryption")
-            self.status.pack(fill=Tkconstants.X, expand=1)
-            body = Tkinter.Frame(self)
-            body.pack(fill=Tkconstants.X, expand=1)
-            sticky = Tkconstants.E + Tkconstants.W
+            tkinter.Frame.__init__(self, root, border=5)
+            self.status = tkinter.Label(self, text=u"Select files for decryption")
+            self.status.pack(fill=tkinter.constants.X, expand=1)
+            body = tkinter.Frame(self)
+            body.pack(fill=tkinter.constants.X, expand=1)
+            sticky = tkinter.constants.E + tkinter.constants.W
             body.grid_columnconfigure(1, weight=2)
-            Tkinter.Label(body, text=u"Key file").grid(row=0)
-            self.keypath = Tkinter.Entry(body, width=30)
+            tkinter.Label(body, text=u"Key file").grid(row=0)
+            self.keypath = tkinter.Entry(body, width=30)
             self.keypath.grid(row=0, column=1, sticky=sticky)
             if os.path.exists(u"adeptkey.der"):
                 self.keypath.insert(0, u"adeptkey.der")
-            button = Tkinter.Button(body, text=u"...", command=self.get_keypath)
+            button = tkinter.Button(body, text=u"...", command=self.get_keypath)
             button.grid(row=0, column=2)
-            Tkinter.Label(body, text=u"Input file").grid(row=1)
-            self.inpath = Tkinter.Entry(body, width=30)
+            tkinter.Label(body, text=u"Input file").grid(row=1)
+            self.inpath = tkinter.Entry(body, width=30)
             self.inpath.grid(row=1, column=1, sticky=sticky)
-            button = Tkinter.Button(body, text=u"...", command=self.get_inpath)
+            button = tkinter.Button(body, text=u"...", command=self.get_inpath)
             button.grid(row=1, column=2)
-            Tkinter.Label(body, text=u"Output file").grid(row=2)
-            self.outpath = Tkinter.Entry(body, width=30)
+            tkinter.Label(body, text=u"Output file").grid(row=2)
+            self.outpath = tkinter.Entry(body, width=30)
             self.outpath.grid(row=2, column=1, sticky=sticky)
-            button = Tkinter.Button(body, text=u"...", command=self.get_outpath)
+            button = tkinter.Button(body, text=u"...", command=self.get_outpath)
             button.grid(row=2, column=2)
-            buttons = Tkinter.Frame(self)
+            buttons = tkinter.Frame(self)
             buttons.pack()
-            botton = Tkinter.Button(
+            botton = tkinter.Button(
                 buttons, text=u"Decrypt", width=10, command=self.decrypt)
-            botton.pack(side=Tkconstants.LEFT)
-            Tkinter.Frame(buttons, width=10).pack(side=Tkconstants.LEFT)
-            button = Tkinter.Button(
+            botton.pack(side=tkinter.constants.LEFT)
+            tkinter.Frame(buttons, width=10).pack(side=tkinter.constants.LEFT)
+            button = tkinter.Button(
                 buttons, text=u"Quit", width=10, command=self.quit)
-            button.pack(side=Tkconstants.RIGHT)
+            button.pack(side=tkinter.constants.RIGHT)
 
         def get_keypath(self):
-            keypath = tkFileDialog.askopenfilename(
+            keypath = tkinter.filedialog.askopenfilename(
                 parent=None, title=u"Select Adobe Adept \'.der\' key file",
                 defaultextension=u".der",
                 filetypes=[('Adobe Adept DER-encoded files', '.der'),
                            ('All Files', '.*')])
             if keypath:
                 keypath = os.path.normpath(keypath)
-                self.keypath.delete(0, Tkconstants.END)
+                self.keypath.delete(0, tkinter.constants.END)
                 self.keypath.insert(0, keypath)
             return
 
         def get_inpath(self):
-            inpath = tkFileDialog.askopenfilename(
+            inpath = tkinter.filedialog.askopenfilename(
                 parent=None, title=u"Select ADEPT-encrypted PDF file to decrypt",
                 defaultextension=u".pdf", filetypes=[('PDF files', '.pdf')])
             if inpath:
                 inpath = os.path.normpath(inpath)
-                self.inpath.delete(0, Tkconstants.END)
+                self.inpath.delete(0, tkinter.constants.END)
                 self.inpath.insert(0, inpath)
             return
 
         def get_outpath(self):
-            outpath = tkFileDialog.asksaveasfilename(
+            outpath = tkinter.filedialog.asksaveasfilename(
                 parent=None, title=u"Select unencrypted PDF file to produce",
                 defaultextension=u".pdf", filetypes=[('PDF files', '.pdf')])
             if outpath:
                 outpath = os.path.normpath(outpath)
-                self.outpath.delete(0, Tkconstants.END)
+                self.outpath.delete(0, tkinter.constants.END)
                 self.outpath.insert(0, outpath)
             return
 
@@ -2328,10 +2339,10 @@ def gui_main():
                 self.status['text'] = u"The was an error decrypting the file."
 
 
-    root = Tkinter.Tk()
+    root = tkinter.Tk()
     if RSA is None:
         root.withdraw()
-        tkMessageBox.showerror(
+        tkinter.messagebox.showerror(
             "INEPT PDF",
             "This script requires OpenSSL or PyCrypto, which must be installed "
             "separately.  Read the top-of-script comment for details.")
@@ -2339,7 +2350,7 @@ def gui_main():
     root.title(u"Adobe Adept PDF Decrypter v.{0}".format(__version__))
     root.resizable(True, False)
     root.minsize(370, 0)
-    DecryptionDialog(root).pack(fill=Tkconstants.X, expand=1)
+    DecryptionDialog(root).pack(fill=tkinter.constants.X, expand=1)
     root.mainloop()
     return 0
 

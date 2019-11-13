@@ -3,16 +3,19 @@
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
 from __future__ import print_function
+from __future__ import absolute_import
+from builtins import filter
+from builtins import str
 import sys
 import os
 import re
-import ineptepub
-import ignobleepub
-import epubtest
-import zipfix
-import ineptpdf
-import erdr2pml
-import k4mobidedrm
+from . import ineptepub
+from . import ignobleepub
+from . import epubtest
+from . import zipfix
+from . import ineptpdf
+from . import erdr2pml
+from . import k4mobidedrm
 import traceback
 
 def decryptepub(infile, outdir, rscpath):
@@ -36,7 +39,7 @@ def decryptepub(infile, outdir, rscpath):
         # try with any keyfiles (*.der) in the rscpath
         files = os.listdir(rscpath)
         filefilter = re.compile("\.der$", re.IGNORECASE)
-        files = filter(filefilter.search, files)
+        files = list(filter(filefilter.search, files))
         if files:
             for filename in files:
                 keypath = os.path.join(rscpath, filename)
@@ -55,7 +58,7 @@ def decryptepub(infile, outdir, rscpath):
         # try with any keyfiles (*.b64) in the rscpath
         files = os.listdir(rscpath)
         filefilter = re.compile("\.b64$", re.IGNORECASE)
-        files = filter(filefilter.search, files)
+        files = list(filter(filefilter.search, files))
         if files:
             for filename in files:
                 keypath = os.path.join(rscpath, filename)
@@ -95,7 +98,7 @@ def decryptpdf(infile, outdir, rscpath):
     # try with any keyfiles (*.der) in the rscpath
     files = os.listdir(rscpath)
     filefilter = re.compile("\.der$", re.IGNORECASE)
-    files = filter(filefilter.search, files)
+    files = list(filter(filefilter.search, files))
     if files:
         for filename in files:
             keypath = os.path.join(rscpath, filename)
@@ -162,7 +165,7 @@ def decryptk4mobi(infile, outdir, rscpath):
     kDatabaseFiles = []
     files = os.listdir(rscpath)
     filefilter = re.compile("\.k4i$", re.IGNORECASE)
-    files = filter(filefilter.search, files)
+    files = list(filter(filefilter.search, files))
     if files:
         for filename in files:
             dpath = os.path.join(rscpath,filename)
@@ -170,21 +173,21 @@ def decryptk4mobi(infile, outdir, rscpath):
     androidFiles = []
     files = os.listdir(rscpath)
     filefilter = re.compile("\.ab$", re.IGNORECASE)
-    files = filter(filefilter.search, files)
+    files = list(filter(filefilter.search, files))
     if files:
         for filename in files:
             dpath = os.path.join(rscpath,filename)
             androidFiles.append(dpath)
     files = os.listdir(rscpath)
     filefilter = re.compile("\.db$", re.IGNORECASE)
-    files = filter(filefilter.search, files)
+    files = list(filter(filefilter.search, files))
     if files:
         for filename in files:
             dpath = os.path.join(rscpath,filename)
             androidFiles.append(dpath)
     files = os.listdir(rscpath)
     filefilter = re.compile("\.xml$", re.IGNORECASE)
-    files = filter(filefilter.search, files)
+    files = list(filter(filefilter.search, files))
     if files:
         for filename in files:
             dpath = os.path.join(rscpath,filename)

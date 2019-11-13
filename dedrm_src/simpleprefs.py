@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import object
 import sys
 import os, os.path
 import shutil
@@ -19,7 +23,7 @@ class SimplePrefs(object):
             self.file2key[filename] = key
         self.target = target + 'Prefs'
         if sys.platform.startswith('win'):
-            import _winreg as winreg
+            import winreg as winreg
             regkey = winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders\\")
             path = winreg.QueryValueEx(regkey, 'Local AppData')[0]
             prefdir = path + os.sep + self.target

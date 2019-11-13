@@ -7,6 +7,7 @@ from __future__ import print_function
 # kgenpids.py
 # Copyright © 2008-2017 Apprentice Harper et al.
 
+from builtins import range
 __license__ = 'GPL v3'
 __version__ = '2.1'
 
@@ -160,13 +161,13 @@ def pidFromSerial(s, l):
     global charMap4
     crc = crc32(s)
     arr1 = [0]*l
-    for i in xrange(len(s)):
+    for i in range(len(s)):
         arr1[i%l] ^= ord(s[i])
     crc_bytes = [crc >> 24 & 0xff, crc >> 16 & 0xff, crc >> 8 & 0xff, crc & 0xff]
-    for i in xrange(l):
+    for i in range(l):
         arr1[i] ^= crc_bytes[i&3]
     pid = ""
-    for i in xrange(l):
+    for i in range(l):
         b = arr1[i] & 0xff
         pid+=charMap4[(b >> 7) + ((b >> 5 & 3) ^ (b & 0x1f))]
     return pid
@@ -179,7 +180,7 @@ def getKindlePids(rec209, token, serialnum):
 
     pids=[]
 
-    if isinstance(serialnum,unicode):
+    if isinstance(serialnum,str):
         serialnum = serialnum.encode('utf-8')
 
     # Compute book PID

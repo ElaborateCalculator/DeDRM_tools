@@ -1,6 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import division
+from __future__ import print_function
+from __future__ import absolute_import
+from future import standard_library
+standard_library.install_aliases()
+from builtins import str
+from builtins import zip
+from builtins import chr
+from builtins import range
+from past.utils import old_div
+from builtins import object
 from __future__ import with_statement
 
 # kindlekey.py
@@ -45,14 +56,14 @@ import getopt
 # Wrap a stream so that output gets flushed immediately
 # and also make sure that any unicode strings get
 # encoded using "replace" before writing them.
-class SafeUnbuffered:
+class SafeUnbuffered(object):
     def __init__(self, stream):
         self.stream = stream
         self.encoding = stream.encoding
         if self.encoding == None:
             self.encoding = "utf-8"
     def write(self, data):
-        if isinstance(data,unicode):
+        if isinstance(data,str):
             data = data.encode(self.encoding,"replace")
         self.stream.write(data)
         self.stream.flush()
@@ -93,7 +104,7 @@ def unicode_argv():
             # Remove Python executable and commands if present
             start = argc.value - len(sys.argv)
             return [argv[i] for i in
-                    xrange(start, argc.value)]
+                    range(start, argc.value)]
         # if we don't have any arguments at all, just pass back script name
         # this should never happen
         return [u"kindlekey.py"]
@@ -101,7 +112,7 @@ def unicode_argv():
         argvencoding = sys.stdin.encoding
         if argvencoding == None:
             argvencoding = "utf-8"
-        return [arg if (type(arg) == unicode) else unicode(arg,argvencoding) for arg in sys.argv]
+        return [arg if (type(arg) == str) else str(arg,argvencoding) for arg in sys.argv]
 
 class DrmException(Exception):
     pass
@@ -180,7 +191,7 @@ if iswindows:
         create_unicode_buffer, create_string_buffer, CFUNCTYPE, addressof, \
         string_at, Structure, c_void_p, cast
 
-    import _winreg as winreg
+    import winreg as winreg
     MAX_PATH = 255
     kernel32 = windll.kernel32
     advapi32 = windll.advapi32
@@ -188,7 +199,7 @@ if iswindows:
 
     try:
         # try to get fast routines from alfcrypto
-        from alfcrypto import AES_CBC, KeyIVGen
+        from .alfcrypto import AES_CBC, KeyIVGen
     except:
         # alfcrypto not available, so use python implementations
         """
@@ -246,7 +257,7 @@ if iswindows:
             not for performance.
         """
 
-        class BlockCipher:
+        class BlockCipher(object):
             """ Block ciphers """
             def __init__(self):
                 self.reset()
@@ -292,7 +303,7 @@ if iswindows:
                 numBlocks, numExtraBytes = divmod(len(self.bytesToDecrypt), self.blockSize)
                 if more == None:  # no more calls to decrypt, should have all the data
                     if numExtraBytes  != 0:
-                        raise DecryptNotBlockAlignedError, 'Data not block aligned on decrypt'
+                        raise DecryptNotBlockAlignedError('Data not block aligned on decrypt')
 
                 # hold back some bytes in case last decrypt has zero len
                 if (more != None) and (numExtraBytes == 0) and (numBlocks >0) :
@@ -317,7 +328,7 @@ if iswindows:
                 return plainText
 
 
-        class Pad:
+        class Pad(object):
             def __init__(self):
                 pass              # eventually could put in calculation of min and max size extension
 
@@ -334,7 +345,7 @@ if iswindows:
             def removePad(self, paddedBinaryString, blockSize):
                 """ Remove padding from a binary string """
                 if not(0<len(paddedBinaryString)):
-                    raise DecryptNotBlockAlignedError, 'Expected More Data'
+                    raise DecryptNotBlockAlignedError('Expected More Data')
                 return paddedBinaryString[:-ord(paddedBinaryString[-1])]
 
         class noPadding(Pad):
@@ -364,11 +375,11 @@ if iswindows:
                 self.blockSize  = blockSize  # blockSize is in bytes
                 self.padding    = padding    # change default to noPadding() to get normal ECB behavior
 
-                assert( keySize%4==0 and NrTable[4].has_key(keySize/4)),'key size must be 16,20,24,29 or 32 bytes'
-                assert( blockSize%4==0 and NrTable.has_key(blockSize/4)), 'block size must be 16,20,24,29 or 32 bytes'
+                assert( keySize%4==0 and old_div(keySize,4) in NrTable[4]),'key size must be 16,20,24,29 or 32 bytes'
+                assert( blockSize%4==0 and old_div(blockSize,4) in NrTable), 'block size must be 16,20,24,29 or 32 bytes'
 
-                self.Nb = self.blockSize/4          # Nb is number of columns of 32 bit words
-                self.Nk = keySize/4                 # Nk is the key length in 32-bit words
+                self.Nb = old_div(self.blockSize,4)          # Nb is number of columns of 32 bit words
+                self.Nk = old_div(keySize,4)                 # Nk is the key length in 32-bit words
                 self.Nr = NrTable[self.Nb][self.Nk] # The number of rounds (Nr) is a function of
                                                     # the block (Nb) and key (Nk) sizes.
                 if key != None:
@@ -442,7 +453,7 @@ if iswindows:
                 if (i%Nk) == 0 :
                     temp     = temp[1:]+[temp[0]]  # RotWord(temp)
                     temp     = [ Sbox[byte] for byte in temp ]
-                    temp[0] ^= Rcon[i/Nk]
+                    temp[0] ^= Rcon[old_div(i,Nk)]
                 elif Nk > 6 and  i%Nk == 4 :
                     temp     = [ Sbox[byte] for byte in temp ]  # SubWord(temp)
                 w.append( [ w[i-Nk][byte]^temp[byte] for byte in range(4) ] )
@@ -642,7 +653,7 @@ if iswindows:
             def __init__(self, key = None, padding = padWithPadLen(), keySize=16):
                 """ Initialize AES, keySize is in bytes """
                 if  not (keySize == 16 or keySize == 24 or keySize == 32) :
-                    raise BadKeySizeError, 'Illegal AES key size, must be 16, 24, or 32 bytes'
+                    raise BadKeySizeError('Illegal AES key size, must be 16, 24, or 32 bytes')
 
                 Rijndael.__init__( self, key, padding=padding, keySize=keySize, blockSize=16 )
 
@@ -803,7 +814,7 @@ if iswindows:
                 sha = hashlib.sha1
                 digest_size = sha().digest_size
                 # l - number of output blocks to produce
-                l = keylen / digest_size
+                l = old_div(keylen, digest_size)
                 if keylen % digest_size != 0:
                     l += 1
                 h = hmac.new( passwd, None, sha )
@@ -896,7 +907,7 @@ if iswindows:
                 size.value = len(buffer)
             
             # replace any non-ASCII values with 0xfffd
-            for i in xrange(0,len(buffer)):
+            for i in range(0,len(buffer)):
                 if buffer[i]>u"\u007f":
                     #print u"swapping char "+str(i)+" ("+buffer[i]+")"
                     buffer[i] = u"\ufffd"
@@ -928,7 +939,7 @@ if iswindows:
     # Returns Environmental Variables that contain unicode
     def getEnvironmentVariable(name):
         import ctypes
-        name = unicode(name) # make sure string argument is unicode
+        name = str(name) # make sure string argument is unicode
         n = ctypes.windll.kernel32.GetEnvironmentVariableW(name, None, 0)
         if n == 0:
             return None
@@ -942,7 +953,7 @@ if iswindows:
         # some 64 bit machines do not have the proper registry key for some reason
         # or the python interface to the 32 vs 64 bit registry is broken
         path = ""
-        if 'LOCALAPPDATA' in os.environ.keys():
+        if 'LOCALAPPDATA' in list(os.environ.keys()):
             # Python 2.x does not return unicode env. Use Python 3.x
             path = winreg.ExpandEnvironmentStrings(u"%LOCALAPPDATA%")
             # this is just another alternative.
@@ -1085,7 +1096,7 @@ if iswindows:
             # read and store in rcnt records of data
             # that make up the contents value
             edlst = []
-            for i in xrange(rcnt):
+            for i in range(rcnt):
                 item = items.pop(0)
                 edlst.append(item)
 
@@ -1116,7 +1127,7 @@ if iswindows:
             encdata = "".join(edlst)
             #print "encrypted data:",encdata
             contlen = len(encdata)
-            noffset = contlen - primes(int(contlen/3))[-1]
+            noffset = contlen - primes(int(old_div(contlen,3)))[-1]
             pfx = encdata[0:noffset]
             encdata = encdata[noffset:]
             encdata = encdata + pfx
@@ -1273,7 +1284,7 @@ elif isosx:
         #print out1
         reslst = out1.split('\n')
         cnt = len(reslst)
-        for j in xrange(cnt):
+        for j in range(cnt):
             resline = reslst[j]
             pp = resline.find('\"Serial Number\" = \"')
             if pp >= 0:
@@ -1289,7 +1300,7 @@ elif isosx:
         out1, out2 = p.communicate()
         reslst = out1.split('\n')
         cnt = len(reslst)
-        for j in xrange(cnt):
+        for j in range(cnt):
             resline = reslst[j]
             if resline.startswith('/dev'):
                 (devpart, mpath) = resline.split(' on ')[:2]
@@ -1310,7 +1321,7 @@ elif isosx:
         #print out1
         reslst = out1.split('\n')
         cnt = len(reslst)
-        for j in xrange(cnt):
+        for j in range(cnt):
             resline = reslst[j]
             pp = resline.find('\"UUID\" = \"')
             if pp >= 0:
@@ -1330,7 +1341,7 @@ elif isosx:
         out1, out2 = p.communicate()
         reslst = out1.split('\n')
         cnt = len(reslst)
-        for j in xrange(cnt):
+        for j in range(cnt):
             resline = reslst[j]
             pp = resline.find('Ethernet Address: ')
             if pp >= 0:
@@ -1531,7 +1542,7 @@ elif isosx:
                     # read and store in rcnt records of data
                     # that make up the contents value
                     edlst = []
-                    for i in xrange(rcnt):
+                    for i in range(rcnt):
                         item = items.pop(0)
                         edlst.append(item)
 
@@ -1560,7 +1571,7 @@ elif isosx:
                     # now properly split and recombine
                     # by moving noffset chars from the start of the
                     # string to the end of the string
-                    noffset = contlen - primes(int(contlen/3))[-1]
+                    noffset = contlen - primes(int(old_div(contlen,3)))[-1]
                     pfx = encdata[0:noffset]
                     encdata = encdata[noffset:]
                     encdata = encdata + pfx
@@ -1681,27 +1692,27 @@ def cli_main():
 
 def gui_main():
     try:
-        import Tkinter
-        import Tkconstants
-        import tkMessageBox
+        import tkinter
+        import tkinter.constants
+        import tkinter.messagebox
         import traceback
     except:
         return cli_main()
 
-    class ExceptionDialog(Tkinter.Frame):
+    class ExceptionDialog(tkinter.Frame):
         def __init__(self, root, text):
-            Tkinter.Frame.__init__(self, root, border=5)
-            label = Tkinter.Label(self, text=u"Unexpected error:",
-                                  anchor=Tkconstants.W, justify=Tkconstants.LEFT)
-            label.pack(fill=Tkconstants.X, expand=0)
-            self.text = Tkinter.Text(self)
-            self.text.pack(fill=Tkconstants.BOTH, expand=1)
+            tkinter.Frame.__init__(self, root, border=5)
+            label = tkinter.Label(self, text=u"Unexpected error:",
+                                  anchor=tkinter.constants.W, justify=tkinter.constants.LEFT)
+            label.pack(fill=tkinter.constants.X, expand=0)
+            self.text = tkinter.Text(self)
+            self.text.pack(fill=tkinter.constants.BOTH, expand=1)
 
-            self.text.insert(Tkconstants.END, text)
+            self.text.insert(tkinter.constants.END, text)
 
 
     argv=unicode_argv()
-    root = Tkinter.Tk()
+    root = tkinter.Tk()
     root.withdraw()
     progpath, progname = os.path.split(argv[0])
     success = False
@@ -1718,14 +1729,14 @@ def gui_main():
             with file(outfile, 'w') as keyfileout:
                 keyfileout.write(json.dumps(key))
             success = True
-            tkMessageBox.showinfo(progname, u"Key successfully retrieved to {0}".format(outfile))
+            tkinter.messagebox.showinfo(progname, u"Key successfully retrieved to {0}".format(outfile))
     except DrmException as e:
-        tkMessageBox.showerror(progname, u"Error: {0}".format(str(e)))
+        tkinter.messagebox.showerror(progname, u"Error: {0}".format(str(e)))
     except Exception:
         root.wm_state('normal')
         root.title(progname)
         text = traceback.format_exc()
-        ExceptionDialog(root, text).pack(fill=Tkconstants.BOTH, expand=1)
+        ExceptionDialog(root, text).pack(fill=tkinter.constants.BOTH, expand=1)
         root.mainloop()
     if not success:
         return 1

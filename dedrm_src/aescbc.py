@@ -14,7 +14,13 @@
     See the wonderful pure python package cryptopy-1.2.5
     and read its LICENSE.txt for complete license details.
 """
+from __future__ import division
 
+from builtins import str
+from builtins import chr
+from builtins import range
+from past.utils import old_div
+from builtins import object
 class CryptoError(Exception):
     """ Base class for crypto exceptions """
     def __init__(self,errorMessage='Error!'):
@@ -55,7 +61,7 @@ def xor(a,b):
     not for performance.
 """
 
-class BlockCipher:
+class BlockCipher(object):
     """ Block ciphers """
     def __init__(self):
         self.reset()
@@ -101,7 +107,7 @@ class BlockCipher:
         numBlocks, numExtraBytes = divmod(len(self.bytesToDecrypt), self.blockSize)
         if more == None:  # no more calls to decrypt, should have all the data
             if numExtraBytes  != 0:
-                raise DecryptNotBlockAlignedError, 'Data not block aligned on decrypt'
+                raise DecryptNotBlockAlignedError('Data not block aligned on decrypt')
 
         # hold back some bytes in case last decrypt has zero len
         if (more != None) and (numExtraBytes == 0) and (numBlocks >0) :
@@ -126,7 +132,7 @@ class BlockCipher:
         return plainText
 
 
-class Pad:
+class Pad(object):
     def __init__(self):
         pass              # eventually could put in calculation of min and max size extension
 
@@ -143,7 +149,7 @@ class padWithPadLen(Pad):
     def removePad(self, paddedBinaryString, blockSize):
         """ Remove padding from a binary string """
         if not(0<len(paddedBinaryString)):
-            raise DecryptNotBlockAlignedError, 'Expected More Data'
+            raise DecryptNotBlockAlignedError('Expected More Data')
         return paddedBinaryString[:-ord(paddedBinaryString[-1])]
 
 class noPadding(Pad):
@@ -173,11 +179,11 @@ class Rijndael(BlockCipher):
         self.blockSize  = blockSize  # blockSize is in bytes
         self.padding    = padding    # change default to noPadding() to get normal ECB behavior
 
-        assert( keySize%4==0 and NrTable[4].has_key(keySize/4)),'key size must be 16,20,24,29 or 32 bytes'
-        assert( blockSize%4==0 and NrTable.has_key(blockSize/4)), 'block size must be 16,20,24,29 or 32 bytes'
+        assert( keySize%4==0 and old_div(keySize,4) in NrTable[4]),'key size must be 16,20,24,29 or 32 bytes'
+        assert( blockSize%4==0 and old_div(blockSize,4) in NrTable), 'block size must be 16,20,24,29 or 32 bytes'
 
-        self.Nb = self.blockSize/4          # Nb is number of columns of 32 bit words
-        self.Nk = keySize/4                 # Nk is the key length in 32-bit words
+        self.Nb = old_div(self.blockSize,4)          # Nb is number of columns of 32 bit words
+        self.Nk = old_div(keySize,4)                 # Nk is the key length in 32-bit words
         self.Nr = NrTable[self.Nb][self.Nk] # The number of rounds (Nr) is a function of
                                             # the block (Nb) and key (Nk) sizes.
         if key != None:
@@ -251,7 +257,7 @@ def keyExpansion(algInstance, keyString):
         if (i%Nk) == 0 :
             temp     = temp[1:]+[temp[0]]  # RotWord(temp)
             temp     = [ Sbox[byte] for byte in temp ]
-            temp[0] ^= Rcon[i/Nk]
+            temp[0] ^= Rcon[old_div(i,Nk)]
         elif Nk > 6 and  i%Nk == 4 :
             temp     = [ Sbox[byte] for byte in temp ]  # SubWord(temp)
         w.append( [ w[i-Nk][byte]^temp[byte] for byte in range(4) ] )
@@ -451,7 +457,7 @@ class AES(Rijndael):
     def __init__(self, key = None, padding = padWithPadLen(), keySize=16):
         """ Initialize AES, keySize is in bytes """
         if  not (keySize == 16 or keySize == 24 or keySize == 32) :
-            raise BadKeySizeError, 'Illegal AES key size, must be 16, 24, or 32 bytes'
+            raise BadKeySizeError('Illegal AES key size, must be 16, 24, or 32 bytes')
 
         Rijndael.__init__( self, key, padding=padding, keySize=keySize, blockSize=16 )
 

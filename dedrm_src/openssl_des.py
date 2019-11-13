@@ -3,6 +3,7 @@
 
 # implement just enough of des from openssl to make erdr2pml.py happy
 
+from builtins import object
 def load_libcrypto():
     from ctypes import CDLL, POINTER, c_void_p, c_char_p, c_char, c_int, c_long, \
         Structure, c_ulong, create_string_buffer, cast
