@@ -241,7 +241,7 @@ def sanitizeFileName(name):
     # delete control characters
     name = u"".join(char for char in name if ord(char)>=32)
     # white space to single space, delete leading and trailing while space
-    name = re.sub(ur"\s", u" ", name).strip()
+    name = re.sub(r"\s", u" ", name).strip()
     # remove leading dots
     while len(name)>0 and name[0] == u".":
         name = name[1:]

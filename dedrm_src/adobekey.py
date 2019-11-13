@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import with_statement
+from __future__ import print_function
 
 # adobekey.pyw, version 6.0
 # Copyright © 2009-2010 i♥cabbages
@@ -57,7 +58,6 @@ from builtins import object
 """
 Retrieve Adobe ADEPT user key.
 """
-from __future__ import print_function
 
 __license__ = 'GPL v3'
 __version__ = '6.0'

@@ -3,12 +3,13 @@
 # Pascal implementation by lulzkabulz. Python translation by apprenticenaomi. DeDRM integration by anon.
 # BinaryIon.pas + DrmIon.pas + IonSymbols.pas
 
+from __future__ import with_statement
+
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
 from builtins import range
 from builtins import object
-from __future__ import with_statement
 
 import collections
 import hashlib

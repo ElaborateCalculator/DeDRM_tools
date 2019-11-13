@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-from builtins import str
 from __future__ import with_statement
+from builtins import str
 
 __license__ = 'GPL v3'
 

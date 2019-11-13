@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import with_statement
+from __future__ import print_function
 
 # ignobleepub.pyw, version 4.1
 # Copyright © 2009-2010 by i♥cabbages
@@ -46,7 +47,6 @@ from builtins import object
 """
 Decrypt Barnes & Noble encrypted ePub books.
 """
-from __future__ import print_function
 
 __license__ = 'GPL v3'
 __version__ = "4.1"

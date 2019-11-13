@@ -259,7 +259,7 @@ class MobiBook(object):
             print(u"AlfCrypto not found. Using python PC1 implementation.")
 
         # initial sanity check on file
-        self.data_file = file(infile, 'rb').read()
+        self.data_file = open(infile, 'rb').read()
         self.mobi_data = ''
         self.header = self.data_file[0:78]
         if self.header[0x3C:0x3C+8] != 'BOOKMOBI' and self.header[0x3C:0x3C+8] != 'TEXtREAd':
@@ -411,7 +411,7 @@ class MobiBook(object):
         return [found_key,pid]
 
     def getFile(self, outpath):
-        file(outpath,'wb').write(self.mobi_data)
+        open(outpath,'wb').write(self.mobi_data)
 
     def getBookType(self):
         if self.print_replica:
@@ -537,7 +537,7 @@ def cli_main():
             pidlist = []
         try:
             stripped_file = getUnencryptedBook(infile, pidlist)
-            file(outfile, 'wb').write(stripped_file)
+            open(outfile, 'wb').write(stripped_file)
         except DrmException as e:
             print(u"MobiDeDRM v{0} Error: {1:s}".format(__version__,e.args[0]))
             return 1

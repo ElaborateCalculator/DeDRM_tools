@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import with_statement
+from __future__ import print_function
 
 # ignoblekeygen.pyw, version 2.5
 # Copyright © 2009-2010 i♥cabbages
@@ -43,7 +44,6 @@ from builtins import object
 """
 Generate Barnes & Noble EPUB user key from name and credit card number.
 """
-from __future__ import print_function
 
 __license__ = 'GPL v3'
 __version__ = "2.8"

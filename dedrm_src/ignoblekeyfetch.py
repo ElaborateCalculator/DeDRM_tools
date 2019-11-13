@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import with_statement
+from __future__ import print_function
 
 # ignoblekeyfetch.pyw, version 1.1
 # Copyright © 2015 Apprentice Harper
@@ -33,7 +34,6 @@ from builtins import object
 """
 Fetch Barnes & Noble EPUB user key from B&N servers using email and password
 """
-from __future__ import print_function
 
 __license__ = 'GPL v3'
 __version__ = "1.1"

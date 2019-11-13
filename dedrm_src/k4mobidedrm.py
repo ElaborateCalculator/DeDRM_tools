@@ -3,13 +3,13 @@
 
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import with_statement
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
 from builtins import chr
 from builtins import range
 from builtins import object
-from __future__ import with_statement
 
 # k4mobidedrm.py
 # Copyright © 2008-2019 by Apprentice Harper et al.
@@ -169,7 +169,7 @@ def cleanup_name(name):
     # substitute filename unfriendly characters
     name = name.replace(u"<",u"[").replace(u">",u"]").replace(u" : ",u" – ").replace(u": ",u" – ").replace(u":",u"—").replace(u"/",u"_").replace(u"\\",u"_").replace(u"|",u"_").replace(u"\"",u"\'").replace(u"*",u"_").replace(u"?",u"")
     # white space to single space, delete leading and trailing while space
-    name = re.sub(ur"\s", u" ", name).strip()
+    name = re.sub(r"\s", u" ", name).strip()
     # delete control characters
     name = u"".join(char for char in name if ord(char)>=32)
     # delete non-ascii characters

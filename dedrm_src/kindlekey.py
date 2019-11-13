@@ -4,6 +4,7 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import absolute_import
+from __future__ import with_statement
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
@@ -12,7 +13,6 @@ from builtins import chr
 from builtins import range
 from past.utils import old_div
 from builtins import object
-from __future__ import with_statement
 
 # kindlekey.py
 # Copyright © 2008-2017 Apprentice Harper et al.

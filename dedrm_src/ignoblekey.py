@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import with_statement
+from __future__ import print_function
 
 # ignoblekey.py
 # Copyright © 2015 Apprentice Alf and Apprentice Harper
@@ -23,7 +24,6 @@ from builtins import object
 """
 Get Barnes & Noble EPUB user key from nook Studio log file
 """
-from __future__ import print_function
 
 __license__ = 'GPL v3'
 __version__ = "1.1"

@@ -3,13 +3,13 @@
 
 from __future__ import division
 from __future__ import print_function
+from __future__ import with_statement
 from future import standard_library
 standard_library.install_aliases()
 from builtins import str
 from builtins import range
 from past.utils import old_div
 from builtins import object
-from __future__ import with_statement
 
 # ineptepub.pyw, version 6.6
 # Copyright © 2009-2010 by i♥cabbages
