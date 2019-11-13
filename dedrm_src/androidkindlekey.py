@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import with_statement
+from __future__ import print_function
 
 # androidkindlekey.py
 # Copyright © 2013-15 by Thom and Apprentice Harper
@@ -21,7 +22,6 @@ from __future__ import with_statement
 """
 Retrieve Kindle for Android Serial Number.
 """
-from __future__ import print_function
 
 __license__ = 'GPL v3'
 __version__ = '1.5'
@@ -33,8 +33,8 @@ import getopt
 import tempfile
 import zlib
 import tarfile
+import io
 from hashlib import md5
-from cStringIO import StringIO
 from binascii import a2b_hex, b2a_hex
 
 # Routines common to Mac and PC
@@ -278,7 +278,7 @@ def get_serials(path=STORAGE):
         read = open(path, 'rb')
         head = read.read(24)
         if head[:14] == 'ANDROID BACKUP':
-            output = StringIO(zlib.decompress(read.read()))
+            output = io.StringIO(zlib.decompress(read.read()))
     except Exception:
         pass
     finally:

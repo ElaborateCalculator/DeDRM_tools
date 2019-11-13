@@ -78,7 +78,7 @@ Decrypt DRMed ebooks.
 
 PLUGIN_NAME = u"DeDRM"
 PLUGIN_VERSION_TUPLE = (6, 6, 3)
-PLUGIN_VERSION = u".".join([unicode(str(x)) for x in PLUGIN_VERSION_TUPLE])
+PLUGIN_VERSION = u".".join([str(x) for x in PLUGIN_VERSION_TUPLE])
 # Include an html helpfile in the plugin's zipfile with the following name.
 RESOURCE_NAME = PLUGIN_NAME + '_Help.htm'
 
@@ -107,7 +107,7 @@ class SafeUnbuffered:
         if self.encoding == None:
             self.encoding = "utf-8"
     def write(self, data):
-        if isinstance(data,unicode):
+        if isinstance(data,str):
             data = data.encode(self.encoding,"replace")
         try:
             self.stream.write(data)

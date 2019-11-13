@@ -1136,9 +1136,9 @@ if iswindows:
             # store values used in decryption
             DB['IDString'] = GetIDString()
             DB['UserName'] = GetUserName()
-            print u"Decrypted key file using IDString '{0:s}' and UserName '{1:s}'".format(GetIDString(), GetUserName().encode('hex'))
+            print(u"Decrypted key file using IDString '{0:s}' and UserName '{1:s}'".format(GetIDString(), GetUserName().encode('hex')))
         else:
-            print u"Couldn't decrypt file."
+            print(u"Couldn't decrypt file.")
             DB = {}
         return DB
 elif isosx:
@@ -1579,11 +1579,11 @@ elif isosx:
                 pass
         if len(DB)>6:
             # store values used in decryption
-            print u"Decrypted key file using IDString '{0:s}' and UserName '{1:s}'".format(IDString, GetUserName())
+            print(u"Decrypted key file using IDString '{0:s}' and UserName '{1:s}'".format(IDString, GetUserName()))
             DB['IDString'] = IDString
             DB['UserName'] = GetUserName()
         else:
-            print u"Couldn't decrypt file."
+            print(u"Couldn't decrypt file.")
             DB = {}
         return DB
 else:
@@ -1613,7 +1613,7 @@ def getkey(outpath, files=[]):
             outfile = outpath
             with file(outfile, 'w') as keyfileout:
                 keyfileout.write(json.dumps(keys[0]))
-            print u"Saved a key to {0}".format(outfile)
+            print(u"Saved a key to {0}".format(outfile))
         else:
             keycount = 0
             for key in keys:
@@ -1624,16 +1624,16 @@ def getkey(outpath, files=[]):
                         break
                 with file(outfile, 'w') as keyfileout:
                     keyfileout.write(json.dumps(key))
-                print u"Saved a key to {0}".format(outfile)
+                print(u"Saved a key to {0}".format(outfile))
         return True
     return False
 
 def usage(progname):
-    print u"Finds, decrypts and saves the default Kindle For Mac/PC encryption keys."
-    print u"Keys are saved to the current directory, or a specified output directory."
-    print u"If a file name is passed instead of a directory, only the first key is saved, in that file."
-    print u"Usage:"
-    print u"    {0:s} [-h] [-k <kindle.info>] [<outpath>]".format(progname)
+    print(u"Finds, decrypts and saves the default Kindle For Mac/PC encryption keys.")
+    print(u"Keys are saved to the current directory, or a specified output directory.")
+    print(u"If a file name is passed instead of a directory, only the first key is saved, in that file.")
+    print(u"Usage:")
+    print(u"    {0:s} [-h] [-k <kindle.info>] [<outpath>]".format(progname))
 
 
 def cli_main():
@@ -1641,12 +1641,12 @@ def cli_main():
     sys.stderr=SafeUnbuffered(sys.stderr)
     argv=unicode_argv()
     progname = os.path.basename(argv[0])
-    print u"{0} v{1}\nCopyright © 2010-2016 by some_updates, Apprentice Alf and Apprentice Harper".format(progname,__version__)
+    print(u"{0} v{1}\nCopyright © 2010-2016 by some_updates, Apprentice Alf and Apprentice Harper".format(progname,__version__))
 
     try:
         opts, args = getopt.getopt(argv[1:], "hk:")
     except getopt.GetoptError as err:
-        print u"Error in options or arguments: {0}".format(err.args[0])
+        print(u"Error in options or arguments: {0}".format(err.args[0]))
         usage(progname)
         sys.exit(2)
 
@@ -1675,7 +1675,7 @@ def cli_main():
     outpath = os.path.realpath(os.path.normpath(outpath))
 
     if not getkey(outpath, files):
-        print u"Could not retrieve Kindle for Mac/PC key."
+        print(u"Could not retrieve Kindle for Mac/PC key.")
     return 0
 
 
