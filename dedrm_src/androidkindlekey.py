@@ -340,7 +340,7 @@ def cli_main():
 
     try:
         opts, args = getopt.getopt(argv[1:], "hb:")
-    except getopt.GetoptError, err:
+    except getopt.GetoptError as err:
         usage(progname)
         print(u"\nError in options or arguments: {0}".format(err.args[0]))
         return 2
@@ -448,7 +448,7 @@ def gui_main():
                         keyfileout.write(key)
                     success = True
                     tkMessageBox.showinfo(progname, u"Key successfully retrieved to {0}".format(outfile))
-            except Exception, e:
+            except Exception as e:
                 self.status['text'] = u"Error: {0}".format(e.args[0])
                 return
             self.status['text'] = u"Select backup.ab file"

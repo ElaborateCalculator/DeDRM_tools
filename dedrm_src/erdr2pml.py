@@ -522,7 +522,7 @@ def decryptBook(infile, outpath, make_pmlz, user_key):
         else :
             print u"Output is in {0}".format(outdir)
         print "done"
-    except ValueError, e:
+    except ValueError as e:
         print u"Error: {0}".format(e)
         traceback.print_exc()
         return 1
@@ -558,7 +558,7 @@ def cli_main():
     argv=unicode_argv()
     try:
         opts, args = getopt.getopt(argv[1:], "hp", ["make-pmlz"])
-    except getopt.GetoptError, err:
+    except getopt.GetoptError as err:
         print err.args[0]
         usage()
         return 1
