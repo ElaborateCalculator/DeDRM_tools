@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 # Pascal implementation by lulzkabulz. Python translation by apprenticenaomi. DeDRM integration by anon.
 # BinaryIon.pas + DrmIon.pas + IonSymbols.pas

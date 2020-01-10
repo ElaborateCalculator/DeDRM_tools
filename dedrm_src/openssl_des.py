@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
 # implement just enough of des from openssl to make erdr2pml.py happy
